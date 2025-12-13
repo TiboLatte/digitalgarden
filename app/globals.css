@@ -1,0 +1,265 @@
+@import "tailwindcss";
+
+:root {
+  /* Matcha (Light Default) - Soft, cute, minty */
+  --background: #F4F9F4;
+  /* Very Pale Mint */
+  --foreground: #4A5D4B;
+  /* Soft Forest */
+  --card: #FFFFFF;
+  --card-border: #D1E7D2;
+  /* Pastel Mint Border */
+  --text-main: #4A5D4B;
+  --text-muted: #83A585;
+  /* Muted Matcha */
+  --accent: #95D5B2;
+  /* Cute Mint Accent */
+}
+
+:root.light {
+  /* Matcha */
+  --background: #F4F9F4;
+  --foreground: #4A5D4B;
+  --card: #FFFFFF;
+  --card-border: #D1E7D2;
+  --text-main: #4A5D4B;
+  --text-muted: #83A585;
+  --accent: #95D5B2;
+}
+
+:root.dark {
+  /* Dream (Soft Cosmic) - Kawaii Dark */
+  --background: #2D2B3F;
+  /* Soft Grape Dark */
+  --foreground: #F0E6F5;
+  /* Pale Lilac Text */
+  --card: #37344D;
+  /* Lighter Grape */
+  --card-border: #4E4968;
+  --text-main: #F0E6F5;
+  --text-muted: #B4A9C8;
+  /* Muted Lilac */
+  --accent: #F5C2E7;
+  /* Cute Pink Accent */
+}
+
+:root.rose {
+  /* Sakura (Kawaii Pink) */
+  --background: #FFF0F5;
+  /* Lavender Blush */
+  --foreground: #8E5566;
+  /* Muted Mauve */
+  --card: #FFFFFF;
+  --card-border: #FADCE5;
+  /* Pastel Pink Border */
+  --text-main: #8E5566;
+  --text-muted: #C598A6;
+  /* Dusty Pink */
+  --accent: #FFB7B2;
+  /* Melon/Pink Accent */
+}
+
+:root.ocean {
+  /* Ocean (Fresh & Vibrant) */
+  --background: #E0F7FA;
+  /* Pale Cyan */
+  --foreground: #006064;
+  /* Deep Cyan */
+  --card: #FFFFFF;
+  --card-border: #B2EBF2;
+  /* Mild Cyan Border */
+  --text-main: #006064;
+  --text-muted: #00838F;
+  /* Darker Cyan Muted (Contrast Fix) */
+  --accent: #00BCD4;
+  /* Vibrant Cyan */
+}
+
+:root.latte {
+  /* Latte (Warm & Cozy) */
+  --background: #FFF8E1;
+  /* Cosmic Latte/Cream */
+  --foreground: #5D4037;
+  /* Dark Brown */
+  --card: #FFFFFF;
+  --card-border: #FFE0B2;
+  /* Pale Orange Border */
+  --text-main: #5D4037;
+  --text-muted: #8D6E63;
+  /* Darker Brown Muted (Contrast Fix) */
+  --accent: #FFA000;
+  /* Amber/Caramel */
+}
+
+:root.berry {
+  /* Berry (Rich & Sweet) */
+  --background: #FCE4EC;
+  /* Deep Pink Tint */
+  --foreground: #880E4F;
+  /* Burgundy */
+  --card: #FFFFFF;
+  --card-border: #F8BBD0;
+  /* Pink Border */
+  --text-main: #880E4F;
+  --text-muted: #C2185B;
+  /* Darker Pink Muted (Contrast Fix) */
+  --accent: #F06292;
+  /* Rich Pink */
+}
+
+:root.midnight {
+  /* Midnight (Sleek Slate) */
+  --background: #0F172A;
+  --foreground: #E2E8F0;
+  --card: #1E293B;
+  --card-border: #334155;
+  --text-main: #F8FAFC;
+  --text-muted: #94A3B8;
+  --accent: #38BDF8;
+  /* Sky Blue Pop */
+}
+
+:root.galaxy {
+  /* Galaxy (Deep Indigo) */
+  --background: #1E1B4B;
+  /* Indigo 950 */
+  --foreground: #E0E7FF;
+  --card: #312E81;
+  /* Indigo 900 */
+  --card-border: #4338CA;
+  --text-main: #EEF2FF;
+  --text-muted: #A5B4FC;
+  --accent: #818CF8;
+  /* Indigo 400 */
+}
+
+:root.nebula {
+  /* Nebula (Cyber Violet) */
+  --background: #181024;
+  /* Darker Violet */
+  --foreground: #F3E8FF;
+  --card: #2B1E3E;
+  --card-border: #4C3A69;
+  --text-main: #FAFAFA;
+  --text-muted: #C4B5FD;
+  --accent: #2DD4BF;
+  /* Teal Contrast */
+}
+
+:root.sunrise {
+  /* Sunrise (Vibrant Warmth) */
+  --background: #FFF7ED;
+  /* Orange 50 */
+  --foreground: #7C2D12;
+  /* Orange 900 */
+  --card: #FFFFFF;
+  --card-border: #FDBA74;
+  /* Orange 300 */
+  --text-main: #9A3412;
+  /* Orange 800 */
+  --text-muted: #EA580C;
+  /* Orange 600 */
+  --accent: #F97316;
+  /* Orange 500 - Valid, Strong */
+}
+
+:root.paper {
+  /* Paper (High Contrast / Ink) */
+  --background: #FDFBF7;
+  /* Off-white Paper */
+  --foreground: #111827;
+  /* Gray 900 */
+  --card: #FFFFFF;
+  --card-border: #9CA3AF;
+  /* Gray 400 - Sharp Border */
+  --text-main: #000000;
+  /* Pure Black for crispness */
+  --text-muted: #4B5563;
+  /* Gray 600 */
+  --accent: #2563EB;
+  /* Royal Blue Ink */
+}
+
+:root.fjord {
+  /* Fjord (Crisp Cool Blue) */
+  --background: #F0F9FF;
+  /* Sky 50 */
+  --foreground: #0C4A6E;
+  /* Sky 900 */
+  --card: #FFFFFF;
+  --card-border: #7DD3FC;
+  /* Sky 300 */
+  --text-main: #0369A1;
+  /* Sky 700 */
+  --text-muted: #38BDF8;
+  /* Sky 400 */
+  --accent: #0284C7;
+  /* Sky 600 */
+}
+
+/* Fallback mapping for old state */
+.sepia {
+  /* Mapped to Sakura */
+  --background: #FFF0F5;
+  --foreground: #8E5566;
+  --card: #FFFFFF;
+  --card-border: #FADCE5;
+  --text-main: #8E5566;
+  --text-muted: #C598A6;
+  --accent: #FFB7B2;
+}
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-border: var(--card-border);
+  --color-text-main: var(--text-main);
+  --color-text-muted: var(--text-muted);
+  --color-accent: var(--accent);
+
+  --font-sans: var(--font-inter);
+  --font-serif: var(--font-playfair);
+}
+
+* {
+  transition: background-color 0.4s ease-in-out, border-color 0.4s ease-in-out, color 0.4s ease-in-out, fill 0.4s ease-in-out, stroke 0.4s ease-in-out;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-accent);
+  border-radius: 9999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+  opacity: 0.8;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-text-muted);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Firefox Fallback */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-accent) transparent;
+}
