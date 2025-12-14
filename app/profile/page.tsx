@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useLibraryStore } from '@/store/useLibraryStore';
 import { createClient } from '@/lib/supabase';
-import { BookOpen, Calendar, MapPin, Library, Heart, Flag, Settings, ArrowUp, Moon, Sun, Coffee, Check, Mail, Award, TrendingUp, Upload, Star, Mountain, Feather, SunMedium, Sparkles, Flower2, Droplets, Zap, Save, Download, LogOut, LogIn } from 'lucide-react';
+import { BookOpen, Calendar, MapPin, Library, Heart, Flag, Settings, ArrowUp, Moon, Sun, Coffee, Check, Mail, Award, TrendingUp, Upload, Star, Mountain, Feather, SunMedium, Sparkles, Flower2, Droplets, Zap, Save, Download, LogOut, LogIn, User as UserIcon } from 'lucide-react';
 import { User, Book } from '@/types';
 import { parseGoodreadsCSV } from '@/utils/csvParser';
 
@@ -597,24 +597,50 @@ export default function ProfilePage() {
                                         {showSaved && <span className="text-green-600 font-bold flex items-center gap-1 animate-in fade-in"><Check size={16} /> Saved!</span>}
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                        <div className="flex flex-col gap-2 group">
-                                            <label className="text-sm font-bold text-text-muted uppercase tracking-wider group-focus-within:text-text-main transition-colors">Full Name</label>
-                                            <input
-                                                className="w-full bg-transparent border-0 border-b border-card-border focus:border-text-main focus:ring-0 px-0 py-2 text-text-main text-lg font-medium placeholder:text-gray-300 transition-colors outline-none"
-                                                type="text"
-                                                value={formData.name || ''}
-                                                onChange={(e) => handleInputChange('name', e.target.value)}
-                                            />
+                                    <div className="flex flex-col md:flex-row gap-8 items-start">
+                                        {/* Image Preview */}
+                                        <div className="shrink-0 flex flex-col items-center gap-4 mx-auto md:mx-0">
+                                            <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-card-border shadow-md relative group bg-card">
+                                                {formData.avatarUrl ? (
+                                                    <img
+                                                        src={formData.avatarUrl}
+                                                        alt="Avatar"
+                                                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                                                        onError={(e) => {
+                                                            (e.target as HTMLImageElement).src = "https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png";
+                                                        }}
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full bg-accent/20 flex items-center justify-center text-accent">
+                                                        <UserIcon size={48} />
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="text-center">
+                                                <p className="text-xs font-bold text-text-muted uppercase tracking-wider">Preview</p>
+                                            </div>
                                         </div>
-                                        <div className="flex flex-col gap-2 group">
-                                            <label className="text-sm font-bold text-text-muted uppercase tracking-wider group-focus-within:text-text-main transition-colors">Email Address</label>
-                                            <input
-                                                className="w-full bg-transparent border-0 border-b border-card-border focus:border-text-main focus:ring-0 px-0 py-2 text-text-main text-lg font-medium placeholder:text-gray-300 transition-colors outline-none"
-                                                type="email"
-                                                value={formData.email || ''}
-                                                onChange={(e) => handleInputChange('email', e.target.value)}
-                                            />
+
+                                        {/* Inputs */}
+                                        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-8 w-full">
+                                            <div className="flex flex-col gap-2 group">
+                                                <label className="text-sm font-bold text-text-muted uppercase tracking-wider group-focus-within:text-text-main transition-colors">Full Name</label>
+                                                <input
+                                                    className="w-full bg-transparent border-0 border-b border-card-border focus:border-text-main focus:ring-0 px-0 py-2 text-text-main text-lg font-medium placeholder:text-gray-300 transition-colors outline-none"
+                                                    type="text"
+                                                    value={formData.name || ''}
+                                                    onChange={(e) => handleInputChange('name', e.target.value)}
+                                                />
+                                            </div>
+                                            <div className="flex flex-col gap-2 group">
+                                                <label className="text-sm font-bold text-text-muted uppercase tracking-wider group-focus-within:text-text-main transition-colors">Email Address</label>
+                                                <input
+                                                    className="w-full bg-transparent border-0 border-b border-card-border focus:border-text-main focus:ring-0 px-0 py-2 text-text-main text-lg font-medium placeholder:text-gray-300 transition-colors outline-none"
+                                                    type="email"
+                                                    value={formData.email || ''}
+                                                    onChange={(e) => handleInputChange('email', e.target.value)}
+                                                />
+                                            </div>
                                         </div>
                                     </div>
 
