@@ -35,23 +35,12 @@ export default function LoginPage() {
                 });
                 if (error) throw error;
 
-                // Successful login
-                router.refresh(); // Force refresh to update server components/middleware
-                router.replace('/'); // Use replace to prevent back-button loop
+                // Successful login - force full page reload to clear any stale state
+                window.location.href = '/';
             }
         } catch (err: any) {
             setError(err.message);
-            // Only stop loading on error. On success, we keep loading until redirect happens.
             setLoading(false);
-        } finally {
-            // If successful, we don't set loading(false) because we want to show spinner until navigation completes
-            // But if we do, the button re-enables. 
-            // Better UX: keep loading true on success until page unmounts.
-            // So we move setLoading(false) to catch block or only if error exists.
-
-            // Wait, if we are in finally, we don't know if it succeeded or failed easily without checking error state, 
-            // but error state update is async.
-            // Let's rely on the catch block to turn off loading.
         }
     };
 
