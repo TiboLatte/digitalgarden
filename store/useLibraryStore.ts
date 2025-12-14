@@ -175,25 +175,26 @@ export const useLibraryStore = create<LibraryState>()(
         updateUser: async (updates) => {
             // ROBUST: DB First, then Local
             const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return;
 
-            const dbUpdates: any = {};
-            if (updates.name !== undefined) dbUpdates.full_name = updates.name;
-            if (updates.bio !== undefined) dbUpdates.bio = updates.bio;
-            if (updates.location !== undefined) dbUpdates.location = updates.location;
-            if (updates.avatarUrl !== undefined) dbUpdates.avatar_url = updates.avatarUrl;
-            if (updates.themePreference !== undefined) dbUpdates.theme_preference = updates.themePreference;
-            if (updates.readingGoal !== undefined) dbUpdates.reading_goal = updates.readingGoal;
-            if (updates.languagePreference !== undefined) dbUpdates.language_preference = updates.languagePreference;
+            if (user) {
+                const dbUpdates: any = {};
+                if (updates.name !== undefined) dbUpdates.full_name = updates.name;
+                if (updates.bio !== undefined) dbUpdates.bio = updates.bio;
+                if (updates.location !== undefined) dbUpdates.location = updates.location;
+                if (updates.avatarUrl !== undefined) dbUpdates.avatar_url = updates.avatarUrl;
+                if (updates.themePreference !== undefined) dbUpdates.theme_preference = updates.themePreference;
+                if (updates.readingGoal !== undefined) dbUpdates.reading_goal = updates.readingGoal;
+                if (updates.languagePreference !== undefined) dbUpdates.language_preference = updates.languagePreference;
 
-            if (Object.keys(dbUpdates).length > 0) {
-                await retryDB(async () => {
-                    const { error } = await supabase.from('profiles').update(dbUpdates).eq('id', user.id);
-                    if (error) throw error;
-                });
+                if (Object.keys(dbUpdates).length > 0) {
+                    await retryDB(async () => {
+                        const { error } = await supabase.from('profiles').update(dbUpdates).eq('id', user.id);
+                        if (error) throw error;
+                    });
+                }
             }
 
-            // If DB success, apply to local state
+            // Apply to local state (works for Guests too)
             set((state) => ({ user: { ...state.user, ...updates } }));
         },
 

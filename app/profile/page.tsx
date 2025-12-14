@@ -654,467 +654,469 @@ export default function ProfilePage() {
 
                                 <div className="flex justify-end pt-4">
                                     <button type="button" onClick={() => setFormData(user)} className="text-text-muted font-bold px-6 py-2.5 hover:text-text-main transition-colors mr-2">Reset</button>
-                                </button>
-                            </div>
+                                    <button type="submit" disabled={isSaving} className="bg-text-main hover:bg-text-main/90 text-card font-bold px-8 py-2.5 rounded-lg shadow-md transition-all active:scale-95 flex items-center gap-2 disabled:opacity-70 disabled:cursor-wait">
+                                        {isSaving ? 'Saving...' : <><Save size={16} /> Save Changes</>}
+                                    </button>
+                                </div>
                             </form>
 
                     {/* DANGER ZONE / ACCOUNT ACTIONS */}
-                    <div className="mt-8 pt-8 border-t-2 border-dashed border-card-border">
-                        <h3 className="text-xl font-bold font-serif text-text-main flex items-center gap-2 mb-4">
-                            <LogOut size={20} className="text-text-muted" /> Account Actions
-                        </h3>
+                        <div className="mt-8 pt-8 border-t-2 border-dashed border-card-border">
+                            <h3 className="text-xl font-bold font-serif text-text-main flex items-center gap-2 mb-4">
+                                <LogOut size={20} className="text-text-muted" /> Account Actions
+                            </h3>
 
-                        <div className="p-6 bg-card border border-card-border rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                            <div>
-                                <p className="font-bold text-text-main">Session Management</p>
-                                <p className="text-xs text-text-muted">Securely log out of your account on this device.</p>
+                            <div className="p-6 bg-card border border-card-border rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                                <div>
+                                    <p className="font-bold text-text-main">Session Management</p>
+                                    <p className="text-xs text-text-muted">Securely log out of your account on this device.</p>
+                                </div>
+
+                                {user.email ? (
+                                    <button
+                                        onClick={handleSignOut}
+                                        className="flex items-center gap-2 bg-red-50 text-red-600 border border-red-200 px-6 py-2.5 rounded-lg font-bold hover:bg-red-100 transition-colors w-full md:w-auto justify-center"
+                                    >
+                                        <LogOut size={16} /> Disconnect
+                                    </button>
+                                ) : (
+                                    <Link
+                                        href="/login"
+                                        className="flex items-center gap-2 bg-emerald-50 text-emerald-600 border border-emerald-200 px-6 py-2.5 rounded-lg font-bold hover:bg-emerald-100 transition-colors w-full md:w-auto justify-center"
+                                    >
+                                        <LogIn size={16} /> Log In
+                                    </Link>
+                                )}
                             </div>
-
-                            {user.email ? (
-                                <button
-                                    onClick={handleSignOut}
-                                    className="flex items-center gap-2 bg-red-50 text-red-600 border border-red-200 px-6 py-2.5 rounded-lg font-bold hover:bg-red-100 transition-colors w-full md:w-auto justify-center"
-                                >
-                                    <LogOut size={16} /> Disconnect
-                                </button>
-                            ) : (
-                                <Link
-                                    href="/login"
-                                    className="flex items-center gap-2 bg-emerald-50 text-emerald-600 border border-emerald-200 px-6 py-2.5 rounded-lg font-bold hover:bg-emerald-100 transition-colors w-full md:w-auto justify-center"
-                                >
-                                    <LogIn size={16} /> Log In
-                                </Link>
-                            )}
                         </div>
-                    </div>
 
-                    {/* DANGER ZONE / ACCOUNT ACTIONS */}
-                    <div className="mt-8 pt-8 border-t-2 border-dashed border-card-border">
-                        <h3 className="text-xl font-bold font-serif text-text-main flex items-center gap-2 mb-4">
-                            <LogOut size={20} className="text-text-muted" /> Account Actions
-                        </h3>
+                        {/* DANGER ZONE / ACCOUNT ACTIONS */}
+                        <div className="mt-8 pt-8 border-t-2 border-dashed border-card-border">
+                            <h3 className="text-xl font-bold font-serif text-text-main flex items-center gap-2 mb-4">
+                                <LogOut size={20} className="text-text-muted" /> Account Actions
+                            </h3>
 
-                        <div className="p-6 bg-card border border-card-border rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                            <div>
-                                <p className="font-bold text-text-main">Session Management</p>
-                                <p className="text-xs text-text-muted">Securely log out of your account on this device.</p>
+                            <div className="p-6 bg-card border border-card-border rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                                <div>
+                                    <p className="font-bold text-text-main">Session Management</p>
+                                    <p className="text-xs text-text-muted">Securely log out of your account on this device.</p>
+                                </div>
+
+                                {user.email ? (
+                                    <button
+                                        onClick={handleSignOut}
+                                        className="flex items-center gap-2 bg-red-50 text-red-600 border border-red-200 px-6 py-2.5 rounded-lg font-bold hover:bg-red-100 transition-colors w-full md:w-auto justify-center"
+                                    >
+                                        <LogOut size={16} /> Disconnect
+                                    </button>
+                                ) : (
+                                    <Link
+                                        href="/login"
+                                        className="flex items-center gap-2 bg-emerald-50 text-emerald-600 border border-emerald-200 px-6 py-2.5 rounded-lg font-bold hover:bg-emerald-100 transition-colors w-full md:w-auto justify-center"
+                                    >
+                                        <LogIn size={16} /> Log In
+                                    </Link>
+                                )}
                             </div>
-
-                            {user.email ? (
-                                <button
-                                    onClick={handleSignOut}
-                                    className="flex items-center gap-2 bg-red-50 text-red-600 border border-red-200 px-6 py-2.5 rounded-lg font-bold hover:bg-red-100 transition-colors w-full md:w-auto justify-center"
-                                >
-                                    <LogOut size={16} /> Disconnect
-                                </button>
-                            ) : (
-                                <Link
-                                    href="/login"
-                                    className="flex items-center gap-2 bg-emerald-50 text-emerald-600 border border-emerald-200 px-6 py-2.5 rounded-lg font-bold hover:bg-emerald-100 transition-colors w-full md:w-auto justify-center"
-                                >
-                                    <LogIn size={16} /> Log In
-                                </Link>
-                            )}
                         </div>
-                    </div>
                         )}
 
-                    {activeTab === 'goals' && (
-                        <div className="flex flex-col gap-8 md:px-12 py-4">
-                            <div className="text-center mb-4">
-                                <h3 className="text-2xl font-serif font-bold text-text-main">Your {currentYear} Challenge</h3>
-                                <p className="text-text-muted">Set a target for how many books you want to read this year.</p>
-                            </div>
+                        {activeTab === 'goals' && (
+                            <div className="flex flex-col gap-8 md:px-12 py-4">
+                                <div className="text-center mb-4">
+                                    <h3 className="text-2xl font-serif font-bold text-text-main">Your {currentYear} Challenge</h3>
+                                    <p className="text-text-muted">Set a target for how many books you want to read this year.</p>
+                                </div>
 
-                            <div className="p-8 border border-accent/20 bg-accent/5 rounded-2xl flex flex-col items-center gap-6">
-                                <div className="relative w-48 h-48 flex items-center justify-center">
-                                    {/* Simple Circular Progress using conic-gradient */}
-                                    <div
-                                        className="absolute inset-0 rounded-full"
-                                        style={{
-                                            background: `conic-gradient(var(--color-accent) ${Math.min((booksReadThisYear / (formData.readingGoal || 25)) * 100, 100)}%, transparent 0)`
-                                        }}
-                                    ></div>
-                                    <div className="absolute inset-2 bg-card rounded-full flex flex-col items-center justify-center">
-                                        <span className="text-5xl font-bold font-serif text-text-main">{booksReadThisYear}</span>
-                                        <span className="text-sm font-bold text-text-muted uppercase tracking-wider">of {formData.readingGoal} books</span>
+                                <div className="p-8 border border-accent/20 bg-accent/5 rounded-2xl flex flex-col items-center gap-6">
+                                    <div className="relative w-48 h-48 flex items-center justify-center">
+                                        {/* Simple Circular Progress using conic-gradient */}
+                                        <div
+                                            className="absolute inset-0 rounded-full"
+                                            style={{
+                                                background: `conic-gradient(var(--color-accent) ${Math.min((booksReadThisYear / (formData.readingGoal || 25)) * 100, 100)}%, transparent 0)`
+                                            }}
+                                        ></div>
+                                        <div className="absolute inset-2 bg-card rounded-full flex flex-col items-center justify-center">
+                                            <span className="text-5xl font-bold font-serif text-text-main">{booksReadThisYear}</span>
+                                            <span className="text-sm font-bold text-text-muted uppercase tracking-wider">of {formData.readingGoal} books</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col gap-2 w-full max-w-xs">
+                                        <label className="text-sm font-bold text-text-muted uppercase tracking-wider text-center">Update your Goal</label>
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                max="365"
+                                                value={formData.readingGoal || 25}
+                                                onChange={(e) => handleInputChange('readingGoal', parseInt(e.target.value))}
+                                                className="w-full bg-card border border-card-border p-3 text-center rounded-lg font-bold text-lg outline-none focus:border-accent"
+                                            />
+                                            <button
+                                                onClick={handleSave}
+                                                disabled={isSaving || formData.readingGoal === user.readingGoal}
+                                                className="bg-text-main text-card p-3 rounded-lg hover:bg-text-main/90 disabled:opacity-50"
+                                            >
+                                                <Save size={20} />
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div className="flex flex-col gap-2 w-full max-w-xs">
-                                    <label className="text-sm font-bold text-text-muted uppercase tracking-wider text-center">Update your Goal</label>
-                                    <div className="flex gap-2">
-                                        <input
-                                            type="number"
-                                            min="1"
-                                            max="365"
-                                            value={formData.readingGoal || 25}
-                                            onChange={(e) => handleInputChange('readingGoal', parseInt(e.target.value))}
-                                            className="w-full bg-card border border-card-border p-3 text-center rounded-lg font-bold text-lg outline-none focus:border-accent"
-                                        />
-                                        <button
-                                            onClick={handleSave}
-                                            disabled={isSaving || formData.readingGoal === user.readingGoal}
-                                            className="bg-text-main text-card p-3 rounded-lg hover:bg-text-main/90 disabled:opacity-50"
-                                        >
-                                            <Save size={20} />
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                                    <div className="flex flex-col gap-1 p-4 bg-card border border-card-border rounded-lg text-center">
+                                        <span className="text-2xl font-bold text-text-main">{booksReadThisYear}</span>
+                                        <span className="text-xs font-bold text-text-muted uppercase">Read</span>
+                                    </div>
+                                    <div className="flex flex-col gap-1 p-4 bg-card border border-card-border rounded-lg text-center">
+                                        <span className="text-2xl font-bold text-text-main">{(formData.readingGoal || 25) - booksReadThisYear}</span>
+                                        <span className="text-xs font-bold text-text-muted uppercase">To Go</span>
+                                    </div>
+                                    <div className="flex flex-col gap-1 p-4 bg-card border border-card-border rounded-lg text-center">
+                                        <span className="text-2xl font-bold text-text-main">{Math.round((booksReadThisYear / (formData.readingGoal || 25)) * 100)}%</span>
+                                        <span className="text-xs font-bold text-text-muted uppercase">Progress</span>
+                                    </div>
+                                    <div className="flex flex-col gap-1 p-4 bg-card border border-card-border rounded-lg text-center">
+                                        <span className="text-2xl font-bold text-text-main">365</span>
+                                        <span className="text-xs font-bold text-text-muted uppercase">Days Left</span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'preferences' && (
+                            <div className="flex flex-col gap-8">
+                                <h3 className="text-text-main text-2xl font-bold font-serif">App Preferences</h3>
+
+                                <div className="flex flex-col gap-10">
+                                    {/* Full Width Theme Library */}
+                                    <div className="flex flex-col gap-8">
+                                        <div className="flex flex-col gap-2">
+                                            <h3 className="text-xl font-bold text-text-main font-serif">Theme Library</h3>
+                                            <p className="text-text-muted text-sm">Customize your reading environment. Choose a style that fits your mood.</p>
+                                        </div>
+
+                                        {/* Day Collection */}
+                                        <div className="flex flex-col gap-4">
+                                            <div className="flex items-center gap-2 text-text-muted px-1">
+                                                <SunMedium size={18} />
+                                                <span className="text-xs font-bold uppercase tracking-wider">Day Collection</span>
+                                            </div>
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                                {[
+                                                    { id: 'light', label: 'Botanical', desc: 'Fresh & Green', icon: Sun, color: 'text-green-600', bg: 'bg-green-50' },
+                                                    { id: 'rose', label: 'Sakura', desc: 'Soft & Floral', icon: Flower2, color: 'text-pink-500', bg: 'bg-pink-50' },
+                                                    { id: 'latte', label: 'Latte', desc: 'Warm Coffee', icon: Coffee, color: 'text-amber-700', bg: 'bg-orange-50' },
+                                                    { id: 'ocean', label: 'Ocean', desc: 'Deep Blue', icon: Droplets, color: 'text-cyan-600', bg: 'bg-cyan-50' },
+                                                    { id: 'sunrise', label: 'Sunrise', desc: 'Energetic Orange', icon: SunMedium, color: 'text-orange-500', bg: 'bg-orange-50' },
+                                                    { id: 'berry', label: 'Berry', desc: 'Rich Ruby', icon: Award, color: 'text-rose-700', bg: 'bg-rose-50' },
+                                                    { id: 'paper', label: 'Paper', desc: 'High Contrast', icon: Feather, color: 'text-gray-800', bg: 'bg-gray-50' },
+                                                    { id: 'fjord', label: 'Fjord', desc: 'Cool Sky', icon: Mountain, color: 'text-sky-700', bg: 'bg-sky-50' },
+                                                ].map((theme) => (
+                                                    <button
+                                                        key={theme.id}
+                                                        onClick={() => {
+                                                            const val = theme.id as any;
+                                                            handleInputChange('themePreference', val);
+                                                            updateUser({ themePreference: val });
+                                                        }}
+                                                        className={`relative flex flex-col items-start gap-3 p-4 rounded-xl border transition-all duration-300 group text-left
+                                                            ${(formData.themePreference === theme.id || (theme.id === 'rose' && formData.themePreference === 'sepia'))
+                                                                ? 'border-accent bg-card shadow-md ring-1 ring-accent scale-[1.02]'
+                                                                : 'border-card-border bg-card hover:bg-accent/5 hover:border-accent/50 hover:-translate-y-1'}`}
+                                                    >
+                                                        <div className={`p-3 rounded-lg ${theme.bg} ${theme.color} transition-transform group-hover:scale-110`}>
+                                                            <theme.icon size={24} />
+                                                        </div>
+                                                        <div className="flex flex-col">
+                                                            <span className="font-bold text-text-main text-sm">{theme.label}</span>
+                                                            <span className="text-xs text-text-muted">{theme.desc}</span>
+                                                        </div>
+                                                        {(formData.themePreference === theme.id || (theme.id === 'rose' && formData.themePreference === 'sepia')) && (
+                                                            <div className="absolute top-4 right-4 text-accent animate-in zoom-in duration-200">
+                                                                <Check size={18} />
+                                                            </div>
+                                                        )}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Night Collection */}
+                                        <div className="flex flex-col gap-4">
+                                            <div className="flex items-center gap-2 text-text-muted px-1">
+                                                <Moon size={18} />
+                                                <span className="text-xs font-bold uppercase tracking-wider">Night Collection</span>
+                                            </div>
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                                {[
+                                                    { id: 'dark', label: 'Cosmic', desc: 'Dark Purple', icon: Moon, color: 'text-purple-400', bg: 'bg-purple-900/10' },
+                                                    { id: 'midnight', label: 'Midnight', desc: 'Slate Blue', icon: Moon, color: 'text-slate-400', bg: 'bg-slate-800/10' },
+                                                    { id: 'galaxy', label: 'Galaxy', desc: 'Deep Indigo', icon: Star, color: 'text-indigo-400', bg: 'bg-indigo-900/10' },
+                                                    { id: 'nebula', label: 'Nebula', desc: 'Teal Void', icon: Zap, color: 'text-teal-400', bg: 'bg-teal-900/10' },
+                                                ].map((theme) => (
+                                                    <button
+                                                        key={theme.id}
+                                                        onClick={() => {
+                                                            const val = theme.id as any;
+                                                            handleInputChange('themePreference', val);
+                                                            updateUser({ themePreference: val });
+                                                        }}
+                                                        className={`relative flex flex-col items-start gap-3 p-4 rounded-xl border transition-all duration-300 group text-left
+                                                            ${formData.themePreference === theme.id
+                                                                ? 'border-accent bg-card shadow-md ring-1 ring-accent scale-[1.02]'
+                                                                : 'border-card-border bg-card hover:bg-accent/5 hover:border-accent/50 hover:-translate-y-1'}`}
+                                                    >
+                                                        <div className={`p-3 rounded-lg ${theme.bg} ${theme.color} transition-transform group-hover:scale-110`}>
+                                                            <theme.icon size={24} />
+                                                        </div>
+                                                        <div className="flex flex-col">
+                                                            <span className="font-bold text-text-main text-sm">{theme.label}</span>
+                                                            <span className="text-xs text-text-muted">{theme.desc}</span>
+                                                        </div>
+                                                        {formData.themePreference === theme.id && (
+                                                            <div className="absolute top-4 right-4 text-accent animate-in zoom-in duration-200">
+                                                                <Check size={18} />
+                                                            </div>
+                                                        )}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col gap-4">
+                                        <h4 className="text-sm font-bold text-text-muted uppercase tracking-wider">Book Language</h4>
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                            {[
+                                                { id: 'en', label: 'English', flag: '🇬🇧' },
+                                                { id: 'fr', label: 'Français', flag: '🇫🇷' },
+                                                { id: 'es', label: 'Español', flag: '🇪🇸' },
+                                                { id: 'de', label: 'Deutsch', flag: '🇩🇪' },
+                                            ].map((lang) => (
+                                                <button
+                                                    key={lang.id}
+                                                    onClick={() => {
+                                                        const val = lang.id as any;
+                                                        handleInputChange('languagePreference', val);
+                                                        updateUser({ languagePreference: val });
+                                                    }}
+                                                    className={`p-4 rounded-xl border transition-all duration-300 flex items-center gap-3 text-left
+                                                        ${formData.languagePreference === lang.id
+                                                            ? 'border-accent bg-card shadow-md ring-1 ring-accent scale-[1.02]'
+                                                            : 'border-card-border bg-card hover:bg-accent/5 hover:border-accent/50'}`}
+                                                >
+                                                    <span className="text-2xl">{lang.flag}</span>
+                                                    <span className="font-bold text-text-main text-sm">{lang.label}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8 border-t border-card-border">
+                                        <div className="flex flex-col gap-4">
+                                            <h4 className="text-sm font-bold text-text-muted uppercase tracking-wider">Notifications</h4>
+                                            <div className="flex items-center justify-between p-4 border border-card-border rounded-xl bg-card hover:bg-accent/5 transition-colors group cursor-pointer">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-2 bg-accent/10 rounded-lg text-accent group-hover:bg-accent/20 transition-colors">
+                                                        <Mail size={20} />
+                                                    </div>
+                                                    <span className="font-medium text-text-main">Weekly Digest</span>
+                                                </div>
+                                                <div className="w-11 h-6 bg-accent rounded-full relative shadow-inner">
+                                                    <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex flex-col gap-4">
+                                            <h4 className="text-sm font-bold text-text-muted uppercase tracking-wider">Data Management</h4>
+                                            <div className="p-4 border border-card-border rounded-xl bg-card hover:bg-accent/5 transition-colors flex flex-col gap-3">
+                                                <div className="flex items-center gap-3 text-text-main font-medium">
+                                                    <div className="p-2 bg-accent/10 rounded-lg text-accent">
+                                                        <Library size={20} />
+                                                    </div>
+                                                    <span>Import from Goodreads</span>
+                                                </div>
+
+                                                <label className="cursor-pointer bg-card border-2 border-dashed border-card-border hover:border-accent rounded-lg p-6 flex flex-col items-center justify-center gap-2 group transition-all">
+                                                    <Upload size={24} className="text-text-muted group-hover:text-accent transition-colors" />
+                                                    <span className="text-sm font-bold text-text-muted group-hover:text-text-main">
+                                                        {isImporting ? 'Importing...' : 'Click to select CSV'}
+                                                    </span>
+                                                    {isImporting && (
+                                                        <div className="w-full max-w-[200px] mt-2">
+                                                            <div className="flex justify-between text-xs text-text-muted mb-1">
+                                                                <span>{importCount} / {enrichmentTotal}</span>
+                                                                <span>{Math.round((importCount / (enrichmentTotal || 1)) * 100)}%</span>
+                                                            </div>
+                                                            <div className="w-full h-1.5 bg-card-border rounded-full overflow-hidden">
+                                                                <div className="h-full bg-accent transition-all duration-300" style={{ width: `${(importCount / (enrichmentTotal || 1)) * 100}%` }}></div>
+                                                            </div>
+                                                            <p className="text-[10px] text-text-muted mt-1 truncate animate-pulse">{currentEnrichingTitle}</p>
+                                                        </div>
+                                                    )}
+                                                    {importError && (
+                                                        <div className="mt-2 p-2 bg-red-500/10 border border-red-500/20 rounded text-xs text-red-500 max-w-full break-words">
+                                                            Error: {importError}
+                                                        </div>
+                                                    )}
+                                                    <input
+                                                        type="file"
+                                                        accept=".csv"
+                                                        className="hidden"
+                                                        onChange={handleFileUpload}
+                                                        disabled={isImporting}
+                                                    />
+                                                </label>
+                                                {isImporting && enrichmentTotal > 0 && (
+                                                    <div className="flex flex-col gap-2 w-full animate-in fade-in">
+                                                        <div className="flex justify-between text-xs text-text-muted">
+                                                            <span className="truncate max-w-[200px]">Checking: {currentEnrichingTitle}</span>
+                                                            <span>{importCount} / {enrichmentTotal}</span>
+                                                        </div>
+                                                        <div className="h-1.5 w-full bg-card-border rounded-full overflow-hidden">
+                                                            <div
+                                                                className="h-full bg-accent transition-all duration-300 ease-out"
+                                                                style={{ width: `${(importCount / enrichmentTotal) * 100}%` }}
+                                                            ></div>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {!isImporting && importCount > 0 && (
+                                                    <div className="text-xs text-center font-bold text-green-600 animate-in fade-in">
+                                                        Done! Enriching complete. Added {importCount} books.
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className="p-4 border border-card-border rounded-xl bg-card hover:bg-accent/5 transition-colors flex flex-col gap-3">
+                                                <div className="flex items-center gap-3 text-text-main font-medium">
+                                                    <div className="p-2 bg-accent/10 rounded-lg text-accent">
+                                                        <Download size={20} />
+                                                    </div>
+                                                    <span>Export Garden Data</span>
+                                                </div>
+                                                <p className="text-xs text-text-muted">Download a backup of your entire library and notes as a JSON file.</p>
+
+                                                <button
+                                                    onClick={handleExport}
+                                                    className="w-full py-3 border-2 border-dashed border-card-border hover:border-accent rounded-lg text-sm font-bold text-text-muted hover:text-text-main transition-colors flex items-center justify-center gap-2 group"
+                                                >
+                                                    <Download size={18} className="group-hover:scale-110 transition-transform" />
+                                                    Download Backup
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+
+                                    <div className="flex justify-end pt-4">
+                                        <button onClick={handleSave} className="bg-text-main hover:bg-text-main/90 text-card font-bold px-8 py-2.5 rounded-lg shadow-md transition-all active:scale-95 flex items-center gap-2">
+                                            <Save size={16} /> Save Preferences
                                         </button>
                                     </div>
                                 </div>
                             </div>
+                        )}
 
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-                                <div className="flex flex-col gap-1 p-4 bg-card border border-card-border rounded-lg text-center">
-                                    <span className="text-2xl font-bold text-text-main">{booksReadThisYear}</span>
-                                    <span className="text-xs font-bold text-text-muted uppercase">Read</span>
-                                </div>
-                                <div className="flex flex-col gap-1 p-4 bg-card border border-card-border rounded-lg text-center">
-                                    <span className="text-2xl font-bold text-text-main">{(formData.readingGoal || 25) - booksReadThisYear}</span>
-                                    <span className="text-xs font-bold text-text-muted uppercase">To Go</span>
-                                </div>
-                                <div className="flex flex-col gap-1 p-4 bg-card border border-card-border rounded-lg text-center">
-                                    <span className="text-2xl font-bold text-text-main">{Math.round((booksReadThisYear / (formData.readingGoal || 25)) * 100)}%</span>
-                                    <span className="text-xs font-bold text-text-muted uppercase">Progress</span>
-                                </div>
-                                <div className="flex flex-col gap-1 p-4 bg-card border border-card-border rounded-lg text-center">
-                                    <span className="text-2xl font-bold text-text-main">365</span>
-                                    <span className="text-xs font-bold text-text-muted uppercase">Days Left</span>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {activeTab === 'preferences' && (
-                        <div className="flex flex-col gap-8">
-                            <h3 className="text-text-main text-2xl font-bold font-serif">App Preferences</h3>
-
-                            <div className="flex flex-col gap-10">
-                                {/* Full Width Theme Library */}
-                                <div className="flex flex-col gap-8">
-                                    <div className="flex flex-col gap-2">
-                                        <h3 className="text-xl font-bold text-text-main font-serif">Theme Library</h3>
-                                        <p className="text-text-muted text-sm">Customize your reading environment. Choose a style that fits your mood.</p>
-                                    </div>
-
-                                    {/* Day Collection */}
-                                    <div className="flex flex-col gap-4">
-                                        <div className="flex items-center gap-2 text-text-muted px-1">
-                                            <SunMedium size={18} />
-                                            <span className="text-xs font-bold uppercase tracking-wider">Day Collection</span>
-                                        </div>
-                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                            {[
-                                                { id: 'light', label: 'Botanical', desc: 'Fresh & Green', icon: Sun, color: 'text-green-600', bg: 'bg-green-50' },
-                                                { id: 'rose', label: 'Sakura', desc: 'Soft & Floral', icon: Flower2, color: 'text-pink-500', bg: 'bg-pink-50' },
-                                                { id: 'latte', label: 'Latte', desc: 'Warm Coffee', icon: Coffee, color: 'text-amber-700', bg: 'bg-orange-50' },
-                                                { id: 'ocean', label: 'Ocean', desc: 'Deep Blue', icon: Droplets, color: 'text-cyan-600', bg: 'bg-cyan-50' },
-                                                { id: 'sunrise', label: 'Sunrise', desc: 'Energetic Orange', icon: SunMedium, color: 'text-orange-500', bg: 'bg-orange-50' },
-                                                { id: 'berry', label: 'Berry', desc: 'Rich Ruby', icon: Award, color: 'text-rose-700', bg: 'bg-rose-50' },
-                                                { id: 'paper', label: 'Paper', desc: 'High Contrast', icon: Feather, color: 'text-gray-800', bg: 'bg-gray-50' },
-                                                { id: 'fjord', label: 'Fjord', desc: 'Cool Sky', icon: Mountain, color: 'text-sky-700', bg: 'bg-sky-50' },
-                                            ].map((theme) => (
-                                                <button
-                                                    key={theme.id}
-                                                    onClick={() => {
-                                                        const val = theme.id as any;
-                                                        handleInputChange('themePreference', val);
-                                                        updateUser({ themePreference: val });
-                                                    }}
-                                                    className={`relative flex flex-col items-start gap-3 p-4 rounded-xl border transition-all duration-300 group text-left
-                                                            ${(formData.themePreference === theme.id || (theme.id === 'rose' && formData.themePreference === 'sepia'))
-                                                            ? 'border-accent bg-card shadow-md ring-1 ring-accent scale-[1.02]'
-                                                            : 'border-card-border bg-card hover:bg-accent/5 hover:border-accent/50 hover:-translate-y-1'}`}
-                                                >
-                                                    <div className={`p-3 rounded-lg ${theme.bg} ${theme.color} transition-transform group-hover:scale-110`}>
-                                                        <theme.icon size={24} />
-                                                    </div>
-                                                    <div className="flex flex-col">
-                                                        <span className="font-bold text-text-main text-sm">{theme.label}</span>
-                                                        <span className="text-xs text-text-muted">{theme.desc}</span>
-                                                    </div>
-                                                    {(formData.themePreference === theme.id || (theme.id === 'rose' && formData.themePreference === 'sepia')) && (
-                                                        <div className="absolute top-4 right-4 text-accent animate-in zoom-in duration-200">
-                                                            <Check size={18} />
-                                                        </div>
-                                                    )}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    {/* Night Collection */}
-                                    <div className="flex flex-col gap-4">
-                                        <div className="flex items-center gap-2 text-text-muted px-1">
-                                            <Moon size={18} />
-                                            <span className="text-xs font-bold uppercase tracking-wider">Night Collection</span>
-                                        </div>
-                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                            {[
-                                                { id: 'dark', label: 'Cosmic', desc: 'Dark Purple', icon: Moon, color: 'text-purple-400', bg: 'bg-purple-900/10' },
-                                                { id: 'midnight', label: 'Midnight', desc: 'Slate Blue', icon: Moon, color: 'text-slate-400', bg: 'bg-slate-800/10' },
-                                                { id: 'galaxy', label: 'Galaxy', desc: 'Deep Indigo', icon: Star, color: 'text-indigo-400', bg: 'bg-indigo-900/10' },
-                                                { id: 'nebula', label: 'Nebula', desc: 'Teal Void', icon: Zap, color: 'text-teal-400', bg: 'bg-teal-900/10' },
-                                            ].map((theme) => (
-                                                <button
-                                                    key={theme.id}
-                                                    onClick={() => {
-                                                        const val = theme.id as any;
-                                                        handleInputChange('themePreference', val);
-                                                        updateUser({ themePreference: val });
-                                                    }}
-                                                    className={`relative flex flex-col items-start gap-3 p-4 rounded-xl border transition-all duration-300 group text-left
-                                                            ${formData.themePreference === theme.id
-                                                            ? 'border-accent bg-card shadow-md ring-1 ring-accent scale-[1.02]'
-                                                            : 'border-card-border bg-card hover:bg-accent/5 hover:border-accent/50 hover:-translate-y-1'}`}
-                                                >
-                                                    <div className={`p-3 rounded-lg ${theme.bg} ${theme.color} transition-transform group-hover:scale-110`}>
-                                                        <theme.icon size={24} />
-                                                    </div>
-                                                    <div className="flex flex-col">
-                                                        <span className="font-bold text-text-main text-sm">{theme.label}</span>
-                                                        <span className="text-xs text-text-muted">{theme.desc}</span>
-                                                    </div>
-                                                    {formData.themePreference === theme.id && (
-                                                        <div className="absolute top-4 right-4 text-accent animate-in zoom-in duration-200">
-                                                            <Check size={18} />
-                                                        </div>
-                                                    )}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="flex flex-col gap-4">
-                                    <h4 className="text-sm font-bold text-text-muted uppercase tracking-wider">Book Language</h4>
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                        {[
-                                            { id: 'en', label: 'English', flag: '🇬🇧' },
-                                            { id: 'fr', label: 'Français', flag: '🇫🇷' },
-                                            { id: 'es', label: 'Español', flag: '🇪🇸' },
-                                            { id: 'de', label: 'Deutsch', flag: '🇩🇪' },
-                                        ].map((lang) => (
-                                            <button
-                                                key={lang.id}
-                                                onClick={() => {
-                                                    const val = lang.id as any;
-                                                    handleInputChange('languagePreference', val);
-                                                    updateUser({ languagePreference: val });
-                                                }}
-                                                className={`p-4 rounded-xl border transition-all duration-300 flex items-center gap-3 text-left
-                                                        ${formData.languagePreference === lang.id
-                                                        ? 'border-accent bg-card shadow-md ring-1 ring-accent scale-[1.02]'
-                                                        : 'border-card-border bg-card hover:bg-accent/5 hover:border-accent/50'}`}
-                                            >
-                                                <span className="text-2xl">{lang.flag}</span>
-                                                <span className="font-bold text-text-main text-sm">{lang.label}</span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8 border-t border-card-border">
-                                    <div className="flex flex-col gap-4">
-                                        <h4 className="text-sm font-bold text-text-muted uppercase tracking-wider">Notifications</h4>
-                                        <div className="flex items-center justify-between p-4 border border-card-border rounded-xl bg-card hover:bg-accent/5 transition-colors group cursor-pointer">
-                                            <div className="flex items-center gap-3">
-                                                <div className="p-2 bg-accent/10 rounded-lg text-accent group-hover:bg-accent/20 transition-colors">
-                                                    <Mail size={20} />
-                                                </div>
-                                                <span className="font-medium text-text-main">Weekly Digest</span>
-                                            </div>
-                                            <div className="w-11 h-6 bg-accent rounded-full relative shadow-inner">
-                                                <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex flex-col gap-4">
-                                        <h4 className="text-sm font-bold text-text-muted uppercase tracking-wider">Data Management</h4>
-                                        <div className="p-4 border border-card-border rounded-xl bg-card hover:bg-accent/5 transition-colors flex flex-col gap-3">
-                                            <div className="flex items-center gap-3 text-text-main font-medium">
-                                                <div className="p-2 bg-accent/10 rounded-lg text-accent">
-                                                    <Library size={20} />
-                                                </div>
-                                                <span>Import from Goodreads</span>
-                                            </div>
-
-                                            <label className="cursor-pointer bg-card border-2 border-dashed border-card-border hover:border-accent rounded-lg p-6 flex flex-col items-center justify-center gap-2 group transition-all">
-                                                <Upload size={24} className="text-text-muted group-hover:text-accent transition-colors" />
-                                                <span className="text-sm font-bold text-text-muted group-hover:text-text-main">
-                                                    {isImporting ? 'Importing...' : 'Click to select CSV'}
-                                                </span>
-                                                {isImporting && (
-                                                    <div className="w-full max-w-[200px] mt-2">
-                                                        <div className="flex justify-between text-xs text-text-muted mb-1">
-                                                            <span>{importCount} / {enrichmentTotal}</span>
-                                                            <span>{Math.round((importCount / (enrichmentTotal || 1)) * 100)}%</span>
-                                                        </div>
-                                                        <div className="w-full h-1.5 bg-card-border rounded-full overflow-hidden">
-                                                            <div className="h-full bg-accent transition-all duration-300" style={{ width: `${(importCount / (enrichmentTotal || 1)) * 100}%` }}></div>
-                                                        </div>
-                                                        <p className="text-[10px] text-text-muted mt-1 truncate animate-pulse">{currentEnrichingTitle}</p>
-                                                    </div>
-                                                )}
-                                                {importError && (
-                                                    <div className="mt-2 p-2 bg-red-500/10 border border-red-500/20 rounded text-xs text-red-500 max-w-full break-words">
-                                                        Error: {importError}
-                                                    </div>
-                                                )}
-                                                <input
-                                                    type="file"
-                                                    accept=".csv"
-                                                    className="hidden"
-                                                    onChange={handleFileUpload}
-                                                    disabled={isImporting}
-                                                />
-                                            </label>
-                                            {isImporting && enrichmentTotal > 0 && (
-                                                <div className="flex flex-col gap-2 w-full animate-in fade-in">
-                                                    <div className="flex justify-between text-xs text-text-muted">
-                                                        <span className="truncate max-w-[200px]">Checking: {currentEnrichingTitle}</span>
-                                                        <span>{importCount} / {enrichmentTotal}</span>
-                                                    </div>
-                                                    <div className="h-1.5 w-full bg-card-border rounded-full overflow-hidden">
-                                                        <div
-                                                            className="h-full bg-accent transition-all duration-300 ease-out"
-                                                            style={{ width: `${(importCount / enrichmentTotal) * 100}%` }}
-                                                        ></div>
-                                                    </div>
-                                                </div>
-                                            )}
-                                            {!isImporting && importCount > 0 && (
-                                                <div className="text-xs text-center font-bold text-green-600 animate-in fade-in">
-                                                    Done! Enriching complete. Added {importCount} books.
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        <div className="p-4 border border-card-border rounded-xl bg-card hover:bg-accent/5 transition-colors flex flex-col gap-3">
-                                            <div className="flex items-center gap-3 text-text-main font-medium">
-                                                <div className="p-2 bg-accent/10 rounded-lg text-accent">
-                                                    <Download size={20} />
-                                                </div>
-                                                <span>Export Garden Data</span>
-                                            </div>
-                                            <p className="text-xs text-text-muted">Download a backup of your entire library and notes as a JSON file.</p>
-
-                                            <button
-                                                onClick={handleExport}
-                                                className="w-full py-3 border-2 border-dashed border-card-border hover:border-accent rounded-lg text-sm font-bold text-text-muted hover:text-text-main transition-colors flex items-center justify-center gap-2 group"
-                                            >
-                                                <Download size={18} className="group-hover:scale-110 transition-transform" />
-                                                Download Backup
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-
-
-
-                                <div className="flex justify-end pt-4">
-                                    <button onClick={handleSave} className="bg-text-main hover:bg-text-main/90 text-card font-bold px-8 py-2.5 rounded-lg shadow-md transition-all active:scale-95 flex items-center gap-2">
-                                        <Save size={16} /> Save Preferences
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                </section>
-            </div>
-        </div>
-
-            {/* Genre Modal */ }
-    {
-        showGenreModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setShowGenreModal(false)}>
-                <div className="bg-card rounded-2xl shadow-2xl border border-card-border max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
-                    <div className="p-6 border-b border-card-border flex items-center justify-between bg-accent/5">
-                        <div>
-                            <h2 className="text-2xl font-serif font-bold text-text-main flex items-center gap-2">
-                                <Heart size={24} className="text-accent" />
-                                All Genres
-                            </h2>
-                            <p className="text-sm text-text-muted mt-1">{allGenresSorted.length} genre{allGenresSorted.length !== 1 ? 's' : ''} in your library</p>
-                        </div>
-                        <button onClick={() => setShowGenreModal(false)} className="text-text-muted hover:text-text-main transition-colors">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                        </button>
-                    </div>
-                    <div className="flex-1 overflow-y-auto p-6">
-                        <div className="space-y-6">
-                            {allGenresSorted.map(({ genre, count, books: genreBooks }) => (
-                                <div key={genre} className="border border-card-border rounded-xl p-4 hover:border-accent/50 transition-colors">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <h3 className="text-lg font-bold text-text-main capitalize">{genre}</h3>
-                                        <span className="text-sm font-bold text-accent bg-accent/10 px-3 py-1 rounded-full">{count} book{count !== 1 ? 's' : ''}</span>
-                                    </div>
-                                    <div className="flex flex-wrap gap-2">
-                                        {genreBooks.map(book => (
-                                            <div key={book.id} className="text-xs bg-card-border/50 text-text-muted px-2 py-1 rounded truncate max-w-[200px]" title={book.title}>
-                                                {book.title}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+                    </section>
                 </div>
             </div>
-        )
-    }
 
-    {/* Pages Modal */ }
-    {
-        showPagesModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setShowPagesModal(false)}>
-                <div className="bg-card rounded-2xl shadow-2xl border border-card-border max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
-                    <div className="p-6 border-b border-card-border flex items-center justify-between bg-accent/5">
-                        <div>
-                            <h2 className="text-2xl font-serif font-bold text-text-main flex items-center gap-2">
-                                <BookOpen size={24} className="text-accent" />
-                                Books by Page Count
-                            </h2>
-                            <p className="text-sm text-text-muted mt-1">Ranked from longest to shortest</p>
+            {/* Genre Modal */}
+            {
+                showGenreModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setShowGenreModal(false)}>
+                        <div className="bg-card rounded-2xl shadow-2xl border border-card-border max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+                            <div className="p-6 border-b border-card-border flex items-center justify-between bg-accent/5">
+                                <div>
+                                    <h2 className="text-2xl font-serif font-bold text-text-main flex items-center gap-2">
+                                        <Heart size={24} className="text-accent" />
+                                        All Genres
+                                    </h2>
+                                    <p className="text-sm text-text-muted mt-1">{allGenresSorted.length} genre{allGenresSorted.length !== 1 ? 's' : ''} in your library</p>
+                                </div>
+                                <button onClick={() => setShowGenreModal(false)} className="text-text-muted hover:text-text-main transition-colors">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                </button>
+                            </div>
+                            <div className="flex-1 overflow-y-auto p-6">
+                                <div className="space-y-6">
+                                    {allGenresSorted.map(({ genre, count, books: genreBooks }) => (
+                                        <div key={genre} className="border border-card-border rounded-xl p-4 hover:border-accent/50 transition-colors">
+                                            <div className="flex items-center justify-between mb-3">
+                                                <h3 className="text-lg font-bold text-text-main capitalize">{genre}</h3>
+                                                <span className="text-sm font-bold text-accent bg-accent/10 px-3 py-1 rounded-full">{count} book{count !== 1 ? 's' : ''}</span>
+                                            </div>
+                                            <div className="flex flex-wrap gap-2">
+                                                {genreBooks.map(book => (
+                                                    <div key={book.id} className="text-xs bg-card-border/50 text-text-muted px-2 py-1 rounded truncate max-w-[200px]" title={book.title}>
+                                                        {book.title}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
-                        <button onClick={() => setShowPagesModal(false)} className="text-text-muted hover:text-text-main transition-colors">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                        </button>
                     </div>
-                    <div className="flex-1 overflow-y-auto p-6">
-                        <div className="space-y-3">
-                            {booksByPages.map((book, index) => (
-                                <div key={book.id} className="flex items-center gap-4 p-4 border border-card-border rounded-xl hover:border-accent/50 hover:bg-accent/5 transition-all group">
-                                    <div className="text-2xl font-bold text-text-muted/30 w-8 text-center group-hover:text-accent transition-colors">
-                                        #{index + 1}
-                                    </div>
-                                    {book.coverUrl && (
-                                        <img src={book.coverUrl} alt={book.title} className="w-12 h-16 object-cover rounded shadow-sm" />
+                )
+            }
+
+            {/* Pages Modal */}
+            {
+                showPagesModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setShowPagesModal(false)}>
+                        <div className="bg-card rounded-2xl shadow-2xl border border-card-border max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+                            <div className="p-6 border-b border-card-border flex items-center justify-between bg-accent/5">
+                                <div>
+                                    <h2 className="text-2xl font-serif font-bold text-text-main flex items-center gap-2">
+                                        <BookOpen size={24} className="text-accent" />
+                                        Books by Page Count
+                                    </h2>
+                                    <p className="text-sm text-text-muted mt-1">Ranked from longest to shortest</p>
+                                </div>
+                                <button onClick={() => setShowPagesModal(false)} className="text-text-muted hover:text-text-main transition-colors">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                </button>
+                            </div>
+                            <div className="flex-1 overflow-y-auto p-6">
+                                <div className="space-y-3">
+                                    {booksByPages.map((book, index) => (
+                                        <div key={book.id} className="flex items-center gap-4 p-4 border border-card-border rounded-xl hover:border-accent/50 hover:bg-accent/5 transition-all group">
+                                            <div className="text-2xl font-bold text-text-muted/30 w-8 text-center group-hover:text-accent transition-colors">
+                                                #{index + 1}
+                                            </div>
+                                            {book.coverUrl && (
+                                                <img src={book.coverUrl} alt={book.title} className="w-12 h-16 object-cover rounded shadow-sm" />
+                                            )}
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="font-bold text-text-main truncate">{book.title}</h3>
+                                                <p className="text-sm text-text-muted truncate">{book.author}</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="text-2xl font-bold text-accent">{book.pageCount?.toLocaleString()}</div>
+                                                <div className="text-xs text-text-muted uppercase tracking-wider">pages</div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {booksByPages.length === 0 && (
+                                        <div className="text-center py-12 text-text-muted">
+                                            <BookOpen size={48} className="mx-auto mb-4 opacity-30" />
+                                            <p>No books with page count data yet.</p>
+                                        </div>
                                     )}
-                                    <div className="flex-1 min-w-0">
-                                        <h3 className="font-bold text-text-main truncate">{book.title}</h3>
-                                        <p className="text-sm text-text-muted truncate">{book.author}</p>
-                                    </div>
-                                    <div className="text-right">
-                                        <div className="text-2xl font-bold text-accent">{book.pageCount?.toLocaleString()}</div>
-                                        <div className="text-xs text-text-muted uppercase tracking-wider">pages</div>
-                                    </div>
                                 </div>
-                            ))}
-                            {booksByPages.length === 0 && (
-                                <div className="text-center py-12 text-text-muted">
-                                    <BookOpen size={48} className="mx-auto mb-4 opacity-30" />
-                                    <p>No books with page count data yet.</p>
-                                </div>
-                            )}
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        )
-    }
+                )
+            }
         </div >
     );
 }
