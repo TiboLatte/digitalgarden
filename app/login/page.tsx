@@ -21,15 +21,22 @@ export default function LoginPage() {
         setLoading(true);
 
         try {
+            // Create fresh client to avoid cached session issues
+            const freshSupabase = createClient();
+
             if (isSignUp) {
-                const { error } = await supabase.auth.signUp({
+                const { error } = await freshSupabase.auth.signUp({
                     email,
                     password,
                 });
                 if (error) throw error;
                 setError("Check your email for the confirmation link!");
+                setLoading(false);
             } else {
-                const { error } = await supabase.auth.signInWithPassword({
+                // Clear any existing session first
+                await freshSupabase.auth.signOut();
+
+                const { error } = await freshSupabase.auth.signInWithPassword({
                     email,
                     password,
                 });
