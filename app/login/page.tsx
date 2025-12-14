@@ -15,6 +15,26 @@ export default function LoginPage() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
 
+    // Event-driven redirect to ensure session persistence
+    useEffect(() => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_IN' && session) {
+                // Only redirect if we are mistakenly on the login page while authenticated
+                // AND we are not currently loading (which means we just submitted the form)
+                // Actually, simpler: If we have a session, go home.
+                // But we need to avoid the loop for existing sessions if they are "guest" sessions or similar? 
+                // No, Supabase Auth 'session' means logged in.
+
+                // We use window.location to be safe, but let's check if we just signed in.
+                if (loading) {
+                    window.location.href = '/';
+                }
+            }
+        });
+
+        return () => subscription.unsubscribe();
+    }, [supabase, loading]);
+
     const handleAuth = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
@@ -35,12 +55,7 @@ export default function LoginPage() {
                     password,
                 });
                 if (error) throw error;
-
-                // Wait for session to be fully persisted to cookies
-                await new Promise(resolve => setTimeout(resolve, 300));
-
-                // Successful login - force full page reload
-                window.location.href = '/';
+                // No redirect here - we wait for the event listener above
             }
         } catch (err: any) {
             setError(err.message);
