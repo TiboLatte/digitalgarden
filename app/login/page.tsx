@@ -15,6 +15,17 @@ export default function LoginPage() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
 
+    // Check for existing session on mount
+    useEffect(() => {
+        const checkSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                router.replace('/'); // Redirect if already logged in
+            }
+        };
+        checkSession();
+    }, [router, supabase]);
+
     const handleAuth = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
@@ -27,8 +38,6 @@ export default function LoginPage() {
                     password,
                 });
                 if (error) throw error;
-                // Auto login on signup? depends on config, usually requires email confirm
-                // For now assuming email confirm is OFF for smooth DX, or we show message
                 setError("Check your email for the confirmation link!");
             } else {
                 const { error } = await supabase.auth.signInWithPassword({
@@ -36,12 +45,24 @@ export default function LoginPage() {
                     password,
                 });
                 if (error) throw error;
-                router.push('/');
+
+                // Successful login
+                router.refresh(); // Force refresh to update server components/middleware
+                router.replace('/'); // Use replace to prevent back-button loop
             }
         } catch (err: any) {
             setError(err.message);
-        } finally {
+            // Only stop loading on error. On success, we keep loading until redirect happens.
             setLoading(false);
+        } finally {
+            // If successful, we don't set loading(false) because we want to show spinner until navigation completes
+            // But if we do, the button re-enables. 
+            // Better UX: keep loading true on success until page unmounts.
+            // So we move setLoading(false) to catch block or only if error exists.
+
+            // Wait, if we are in finally, we don't know if it succeeded or failed easily without checking error state, 
+            // but error state update is async.
+            // Let's rely on the catch block to turn off loading.
         }
     };
 
