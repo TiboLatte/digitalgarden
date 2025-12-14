@@ -660,37 +660,7 @@ export default function ProfilePage() {
                                 </div>
                             </form>
 
-                    {/* DANGER ZONE / ACCOUNT ACTIONS */}
-                        <div className="mt-8 pt-8 border-t-2 border-dashed border-card-border">
-                            <h3 className="text-xl font-bold font-serif text-text-main flex items-center gap-2 mb-4">
-                                <LogOut size={20} className="text-text-muted" /> Account Actions
-                            </h3>
-
-                            <div className="p-6 bg-card border border-card-border rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                                <div>
-                                    <p className="font-bold text-text-main">Session Management</p>
-                                    <p className="text-xs text-text-muted">Securely log out of your account on this device.</p>
-                                </div>
-
-                                {user.email ? (
-                                    <button
-                                        onClick={handleSignOut}
-                                        className="flex items-center gap-2 bg-red-50 text-red-600 border border-red-200 px-6 py-2.5 rounded-lg font-bold hover:bg-red-100 transition-colors w-full md:w-auto justify-center"
-                                    >
-                                        <LogOut size={16} /> Disconnect
-                                    </button>
-                                ) : (
-                                    <Link
-                                        href="/login"
-                                        className="flex items-center gap-2 bg-emerald-50 text-emerald-600 border border-emerald-200 px-6 py-2.5 rounded-lg font-bold hover:bg-emerald-100 transition-colors w-full md:w-auto justify-center"
-                                    >
-                                        <LogIn size={16} /> Log In
-                                    </Link>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* DANGER ZONE / ACCOUNT ACTIONS */}
+                            {/* DANGER ZONE / ACCOUNT ACTIONS */}
                         <div className="mt-8 pt-8 border-t-2 border-dashed border-card-border">
                             <h3 className="text-xl font-bold font-serif text-text-main flex items-center gap-2 mb-4">
                                 <LogOut size={20} className="text-text-muted" /> Account Actions
