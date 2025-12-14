@@ -39,7 +39,10 @@ export default function LoginPage() {
                 });
                 if (error) throw error;
 
-                // Successful login - force full page reload to clear any stale state
+                // Wait for session to be fully persisted to cookies
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                // Successful login - force full page reload
                 window.location.href = '/';
             }
         } catch (err: any) {
