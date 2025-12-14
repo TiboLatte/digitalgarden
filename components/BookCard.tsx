@@ -1,30 +1,49 @@
 import { Book } from '@/types';
 import Link from 'next/link';
+import { getSecureCoverUrl } from '@/utils/imageUtils';
+import { useState } from 'react';
 
 interface BookCardProps {
     book: Book;
 }
 
 export function BookCard({ book }: BookCardProps) {
+    const [imgError, setImgError] = useState(false);
     const percent = book.pageCount > 0 ? Math.round((book.progress / book.pageCount) * 100) : 0;
 
-    // Helper to upgrade image quality on the fly, fixing existing low-res data
-    const coverUrl = book.coverUrl
-        ? book.coverUrl.replace('http:', 'https:').replace('&zoom=1', '').replace('&edge=curl', '')
-        : '';
+    // Helper to upgrade image quality on the fly
+    const secureCoverUrl = getSecureCoverUrl(book.coverUrl);
+
+    const getDisplayUrl = () => {
+        if (imgError) {
+            // Fallback 1: Open Library
+            if (book.isbn) {
+                return `https://covers.openlibrary.org/b/isbn/${book.isbn}-L.jpg`;
+            }
+            // Fallback 2: Placeholder
+            return 'https://placehold.co/400x600/e2e8f0/475569?text=No+Cover';
+        }
+        return secureCoverUrl || (book.isbn ? `https://covers.openlibrary.org/b/isbn/${book.isbn}-L.jpg` : 'https://placehold.co/400x600/e2e8f0/475569?text=No+Cover');
+    };
 
     return (
         <Link href={`/book/${book.id}`} className="group flex flex-col gap-3 transition-all duration-300 hover:-translate-y-1">
             <div className="relative w-full aspect-[2/3] shadow-md group-hover:shadow-xl rounded-r-md rounded-l-sm bg-card-border overflow-hidden transition-shadow duration-300">
                 <div className="absolute inset-y-0 left-0 w-1.5 bg-black/5 z-10 mix-blend-multiply"></div>
-                {/* Spine shadow */}
-                {coverUrl ? (
-                    <img src={coverUrl} alt={book.title} className="w-full h-full object-cover" />
-                ) : (
-                    <div className="w-full h-full bg-card flex items-center justify-center p-4 text-center border-l-4 border-card-border">
-                        <span className="font-serif italic text-text-muted opacity-50">{book.title}</span>
-                    </div>
-                )}
+
+                {/* Image Logic */}
+                <img
+                    src={getDisplayUrl()}
+                    alt={book.title}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    onError={(e) => {
+                        const target = e.currentTarget;
+                        // Prevent infinite loop if fallback also fails
+                        if (target.src.includes('placehold.co')) return;
+                        setImgError(true);
+                    }}
+                />
+
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300"></div>
             </div>
 

@@ -4,6 +4,17 @@ import { createClient } from '@/lib/supabase';
 
 const supabase = createClient();
 
+// Helper for Robustness: Retry DB operations
+const retryDB = async <T>(operation: () => Promise<T>, retries = 3, delay = 500): Promise<T> => {
+    try {
+        return await operation();
+    } catch (error) {
+        if (retries === 0) throw error;
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return retryDB(operation, retries - 1, delay * 2);
+    }
+};
+
 interface LibraryState {
     books: Book[];
     notes: Note[];
@@ -14,16 +25,16 @@ interface LibraryState {
 
     // Actions
     syncWithCloud: (confirmedUser?: any) => Promise<void>;
-    addBook: (book: Book) => void;
-    markAsDisliked: (book: Book) => void; // New Action
-    updateBook: (id: string, updates: Partial<Book>) => void;
-    removeBook: (id: string) => void;
-    updateProgress: (id: string, page: number) => void;
-    addNote: (note: Omit<Note, 'id' | 'createdAt'>) => void;
-    removeNote: (id: string) => void;
-    setBookStatus: (id: string, status: BookStatus) => void;
+    addBook: (book: Book) => Promise<void>;
+    markAsDisliked: (book: Book) => Promise<void>;
+    updateBook: (id: string, updates: Partial<Book>) => Promise<void>;
+    removeBook: (id: string) => Promise<void>;
+    updateProgress: (id: string, page: number) => Promise<void>;
+    addNote: (note: Omit<Note, 'id' | 'createdAt'>) => Promise<void>;
+    removeNote: (id: string) => Promise<void>;
+    setBookStatus: (id: string, status: BookStatus) => Promise<void>;
     setActiveBook: (id: string | null) => void;
-    updateUser: (user: Partial<User>) => void;
+    updateUser: (user: Partial<User>) => Promise<void>;
 
     // Getters/Computeds (Same as before)
     getStats: () => {
@@ -86,13 +97,13 @@ export const useLibraryStore = create<LibraryState>()(
                 return;
             }
 
-            // 1. Fetch Books
+            // 1. Fetch Books - NO CACHE
             const { data: books, error: booksError } = await supabase.from('books').select('*');
 
-            // 2. Fetch Notes
+            // 2. Fetch Notes - NO CACHE
             const { data: notes, error: notesError } = await supabase.from('notes').select('*');
 
-            // 3. Fetch Profile
+            // 3. Fetch Profile - NO CACHE
             const { data: profile, error: profileError } = await supabase
                 .from('profiles')
                 .select('*')
@@ -121,7 +132,8 @@ export const useLibraryStore = create<LibraryState>()(
                 review: b.review,
                 vibes: b.vibes || [],
                 description: b.description,
-                googleId: undefined
+                googleId: undefined,
+                isbn: b.isbn
             }));
 
             const mappedNotes: Note[] = (notes || []).map((n: any) => ({
@@ -157,120 +169,109 @@ export const useLibraryStore = create<LibraryState>()(
                 user: mergedUser,
                 isLoading: false
             });
+            console.log("✅ [Store] Sync complete. Books:", mappedBooks.length);
         },
 
         updateUser: async (updates) => {
-            // Optimistic Update
-            set((state) => ({ user: { ...state.user, ...updates } }));
-
-            // Cloud Sync
+            // ROBUST: DB First, then Local
             const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                const dbUpdates: any = {};
-                if (updates.name !== undefined) dbUpdates.full_name = updates.name; // Mapping name -> full_name
-                if (updates.bio !== undefined) dbUpdates.bio = updates.bio;
-                if (updates.location !== undefined) dbUpdates.location = updates.location;
-                if (updates.avatarUrl !== undefined) dbUpdates.avatar_url = updates.avatarUrl;
-                if (updates.themePreference !== undefined) dbUpdates.theme_preference = updates.themePreference;
-                if (updates.readingGoal !== undefined) dbUpdates.reading_goal = updates.readingGoal;
-                if (updates.languagePreference !== undefined) dbUpdates.language_preference = updates.languagePreference;
+            if (!user) return;
 
-                if (Object.keys(dbUpdates).length > 0) {
-                    const { error } = await supabase
-                        .from('profiles')
-                        .update(dbUpdates)
-                        .eq('id', user.id);
+            const dbUpdates: any = {};
+            if (updates.name !== undefined) dbUpdates.full_name = updates.name;
+            if (updates.bio !== undefined) dbUpdates.bio = updates.bio;
+            if (updates.location !== undefined) dbUpdates.location = updates.location;
+            if (updates.avatarUrl !== undefined) dbUpdates.avatar_url = updates.avatarUrl;
+            if (updates.themePreference !== undefined) dbUpdates.theme_preference = updates.themePreference;
+            if (updates.readingGoal !== undefined) dbUpdates.reading_goal = updates.readingGoal;
+            if (updates.languagePreference !== undefined) dbUpdates.language_preference = updates.languagePreference;
 
-                    if (error) console.error("Failed to update profile", error);
-                }
+            if (Object.keys(dbUpdates).length > 0) {
+                await retryDB(async () => {
+                    const { error } = await supabase.from('profiles').update(dbUpdates).eq('id', user.id);
+                    if (error) throw error;
+                });
             }
+
+            // If DB success, apply to local state
+            set((state) => ({ user: { ...state.user, ...updates } }));
         },
 
         addBook: async (newBook) => {
-            // Optimistic
-            set((state) => {
-                const exists = state.books.some(b => b.id === newBook.id);
-                if (exists) return state;
-                return { books: [newBook, ...state.books] };
-            });
-
-            // Cloud
+            // ROBUST: DB First with RETRY
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
-                const { error } = await supabase.from('books').insert({
-                    id: newBook.id,
-                    user_id: user.id,
-                    title: newBook.title,
-                    author: newBook.author,
-                    cover_url: newBook.coverUrl,
-                    page_count: newBook.pageCount,
-                    progress: newBook.progress,
-                    status: newBook.status,
-                    tags: newBook.tags,
-                    date_started: newBook.dateStarted,
-                    date_finished: newBook.dateFinished,
-                    review: newBook.review,
-                    vibes: newBook.vibes,
-                    description: newBook.description
-                });
+                try {
+                    await retryDB(async () => {
+                        const { error } = await supabase.from('books').insert({
+                            id: newBook.id,
+                            user_id: user.id,
+                            title: newBook.title,
+                            author: newBook.author,
+                            cover_url: newBook.coverUrl,
+                            page_count: newBook.pageCount,
+                            progress: newBook.progress,
+                            status: newBook.status,
+                            tags: newBook.tags,
+                            date_started: newBook.dateStarted,
+                            date_finished: newBook.dateFinished,
+                            review: newBook.review,
+                            vibes: newBook.vibes,
+                            description: newBook.description,
+                            isbn: newBook.isbn
+                        });
+                        if (error) throw error;
+                    });
 
-                if (error) {
-                    console.error("🔥 FAILED to save book:", error);
-                    // Revert Optimistic Update
-                    set((state) => ({
-                        books: state.books.filter(b => b.id !== newBook.id)
-                    }));
-                    alert(`Failed to save book: ${error.message}`);
-                } else {
-                    console.log("✅ Book saved to Cloud:", newBook.title);
+                    // Success: Update Store
+                    set((state) => ({ books: [newBook, ...state.books] }));
+                    console.log("✅ Book saved to Cloud & Store:", newBook.title);
+                } catch (error: any) {
+                    console.error("🔥 FAILED to save book after RETRIES:", error);
+                    // alert(`Failed to save book: ${error.message}`); // Removed alert to prevent UI blocking during loops
+                    throw error; // Re-throw to be caught by the import loop
                 }
             } else {
-                console.warn("⚠️ User not logged in. Book saved LOCALLY only.");
+                console.warn("⚠️ User not logged in. Book saved LOCALLY only (Not recommended).");
+                set((state) => ({ books: [newBook, ...state.books] }));
             }
         },
 
         markAsDisliked: async (book) => {
-            // Optimistic
+            const { data: { user } } = await supabase.auth.getUser();
+
             set((state) => ({
-                dislikedBooks: [...state.dislikedBooks, { ...book, status: 'tbr' }] // Store locally, status irrelevant but needed for type
+                dislikedBooks: [...state.dislikedBooks, { ...book, status: 'tbr' }]
             }));
 
-            // TODO: Persist "Dislikes" to DB?
-            // For MVP, we might only keep them in local storage or add a 'disliked' status to the books table.
-            // Let's add them to the 'books' table with status 'abandoned' + rating -1? 
-            // Or just a clean specific table 'dislikes'?
-            // Simplest path: books table, status='abandoned', rating=1, review='[Auto-Dislike]'.
-
-            const { data: { user } } = await supabase.auth.getUser();
             if (user) {
-                await supabase.from('books').insert({
-                    id: book.id,
-                    user_id: user.id,
-                    title: book.title,
-                    author: book.author,
-                    cover_url: book.coverUrl,
-                    page_count: book.pageCount,
-                    status: 'abandoned', // Treat as abandoned
-                    rating: 1, // Hated it
-                    date_finished: new Date().toISOString(), // "Finished" (rejected) today
-                    tags: book.tags,
-                    description: book.description,
-                    review: 'One-Swipe Dislike' // Marker
-                });
+                // Fire and forget for dislikes, or retry? Let's use retry but not block
+                retryDB(async () => {
+                    const { error } = await supabase.from('books').insert({
+                        id: book.id,
+                        user_id: user.id,
+                        title: book.title,
+                        author: book.author,
+                        cover_url: book.coverUrl,
+                        page_count: book.pageCount,
+                        status: 'abandoned',
+                        rating: 1,
+                        date_finished: new Date().toISOString(),
+                        tags: book.tags,
+                        description: book.description,
+                        review: 'One-Swipe Dislike'
+                    });
+                    if (error) throw error;
+                }).catch(e => console.error("Failed to record dislike", e));
             }
         },
 
         updateBook: async (id, updates) => {
-            // Optimistic
-            set((state) => ({
-                books: state.books.map((b) => b.id === id ? { ...b, ...updates } : b)
-            }));
-
-            // Cloud
+            // ROBUST: DB First
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
-                // Map camel to snake for specific updates
                 const dbUpdates: any = {};
+                // ... (mapping redundant for space, assume same) ...
                 if (updates.progress !== undefined) dbUpdates.progress = updates.progress;
                 if (updates.status !== undefined) dbUpdates.status = updates.status;
                 if (updates.rating !== undefined) dbUpdates.rating = updates.rating;
@@ -279,32 +280,40 @@ export const useLibraryStore = create<LibraryState>()(
                 if (updates.review !== undefined) dbUpdates.review = updates.review;
                 if (updates.vibes !== undefined) dbUpdates.vibes = updates.vibes;
                 if (updates.description !== undefined) dbUpdates.description = updates.description;
+                if (updates.isbn !== undefined) dbUpdates.isbn = updates.isbn;
+                if (updates.tags !== undefined) dbUpdates.tags = updates.tags;
 
                 if (Object.keys(dbUpdates).length > 0) {
-                    await supabase.from('books').update(dbUpdates).eq('id', id);
+                    await retryDB(async () => {
+                        const { error } = await supabase.from('books').update(dbUpdates).eq('id', id);
+                        if (error) throw error;
+                    });
                 }
             }
+
+            // Success: Update Local
+            set((state) => ({
+                books: state.books.map((b) => b.id === id ? { ...b, ...updates } : b)
+            }));
         },
 
         removeBook: async (id) => {
-            // Optimistic
+            // ROBUST: DB First
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                await retryDB(async () => {
+                    const { error } = await supabase.from('books').delete().eq('id', id);
+                    if (error) throw error;
+                });
+            }
+
             set((state) => ({
                 books: state.books.filter((b) => b.id !== id),
                 notes: state.notes.filter((n) => n.bookId !== id)
             }));
-
-            // Cloud
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                await supabase.from('books').delete().eq('id', id);
-            }
         },
 
-        updateProgress: (id, page) => {
-            // Re-use updateBook logic? No, specific implementation in old store was complex with auto-start.
-            // call internal helper or duplicate logic.
-            // Let's call get().updateBook to reuse cloud logic?
-
+        updateProgress: async (id, page) => {
             const state = get();
             const book = state.books.find(b => b.id === id);
             if (!book) return;
@@ -315,11 +324,7 @@ export const useLibraryStore = create<LibraryState>()(
                 updates.dateStarted = new Date().toISOString();
             }
 
-            // Apply logic locally then standard cloud sync via updateBook
-            // But we can't easily call get().updateBook inside set().
-            // We will execute the logic:
-
-            get().updateBook(id, updates);
+            await get().updateBook(id, updates);
         },
 
         addNote: async (noteData) => {
@@ -329,34 +334,40 @@ export const useLibraryStore = create<LibraryState>()(
                 createdAt: new Date().toISOString(),
             };
 
-            set((state) => ({ notes: [newNote, ...state.notes] }));
-
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
-                await supabase.from('notes').insert({
-                    id: newNote.id,
-                    user_id: user.id,
-                    book_id: newNote.bookId,
-                    content: newNote.content,
-                    type: newNote.type,
-                    page_reference: newNote.pageReference,
-                    created_at: newNote.createdAt
+                await retryDB(async () => {
+                    const { error } = await supabase.from('notes').insert({
+                        id: newNote.id,
+                        user_id: user.id,
+                        book_id: newNote.bookId,
+                        content: newNote.content,
+                        type: newNote.type,
+                        page_reference: newNote.pageReference,
+                        created_at: newNote.createdAt
+                    });
+                    if (error) throw error;
                 });
             }
+
+            set((state) => ({ notes: [newNote, ...state.notes] }));
         },
 
         removeNote: async (id) => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                await retryDB(async () => {
+                    const { error } = await supabase.from('notes').delete().eq('id', id);
+                    if (error) throw error;
+                });
+            }
+
             set((state) => ({
                 notes: state.notes.filter((n) => n.id !== id)
             }));
-
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                await supabase.from('notes').delete().eq('id', id);
-            }
         },
 
-        setBookStatus: (id, status) => {
+        setBookStatus: async (id, status) => {
             const state = get();
             const book = state.books.find(b => b.id === id);
             if (!book) return;
@@ -368,7 +379,7 @@ export const useLibraryStore = create<LibraryState>()(
                 updates.progress = book.pageCount;
             }
 
-            get().updateBook(id, updates);
+            await get().updateBook(id, updates);
         },
 
         setActiveBook: (id) => set({ activeBookId: id }),

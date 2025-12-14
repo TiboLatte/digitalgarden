@@ -3,6 +3,7 @@ export type BookStatus = 'tbr' | 'reading' | 'finished' | 'abandoned';
 export interface Book {
     id: string;             // Unique UUID
     googleId?: string;      // ID from Google Books API
+    isbn?: string;          // ISBN-13 or ISBN-10
     title: string;
     author: string;
     coverUrl: string;       // URL to image
@@ -16,6 +17,7 @@ export interface Book {
     review?: string;        // User's written thoughts
     vibes?: string[];       // e.g. ["Dark", "Cozy", "Tense"]
     description?: string;   // Summary for AI Analysis
+    addedAt?: number;       // Timestamp
 }
 
 export interface Note {

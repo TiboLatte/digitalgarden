@@ -22,6 +22,7 @@ export default function ProfilePage() {
     const [importCount, setImportCount] = useState(0);
     const [enrichmentTotal, setEnrichmentTotal] = useState(0);
     const [currentEnrichingTitle, setCurrentEnrichingTitle] = useState('');
+    const [importError, setImportError] = useState<string | null>(null);
 
     // Store Data
     const books = useLibraryStore((state) => state.books);
@@ -129,78 +130,201 @@ export default function ProfilePage() {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
-    const fetchGoogleBook = async (isbn?: string, title?: string, author?: string): Promise<{ coverUrl: string; description?: string; categories?: string[]; foundTitle?: string; foundAuthor?: string }> => {
-        const getInfoFromQuery = async (q: string) => {
-            try {
-                const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=5`);
-                const data = await res.json();
-                if (data.items) {
-                    for (const item of data.items) {
-                        const volume = item.volumeInfo;
-                        const links = volume?.imageLinks;
+    // Helper: Levenshtein Distance for Similarity Score (0 to 1)
+    const calculateSimilarity = (s1: string, s2: string): number => {
+        const longer = s1.length > s2.length ? s1 : s2;
+        const shorter = s1.length > s2.length ? s2 : s1;
+        const longerLength = longer.length;
+        if (longerLength === 0) return 1.0;
 
-                        // Check for images in priority order: extraLarge -> large -> medium -> thumbnail -> smallThumbnail
-                        if (links) {
-                            let url = links.extraLarge || links.large || links.medium || links.thumbnail || links.smallThumbnail;
-                            if (url) {
-                                return {
-                                    coverUrl: url.replace('http:', 'https:').replace('&zoom=1', '&zoom=2'),
-                                    description: volume.description,
-                                    categories: volume.categories,
-                                    foundTitle: volume.title,
-                                    foundAuthor: volume.authors ? volume.authors[0] : undefined
-                                };
-                            }
+        const editDistance = (a: string, b: string) => {
+            const costs = new Array();
+            for (let i = 0; i <= a.length; i++) {
+                let lastValue = i;
+                for (let j = 0; j <= b.length; j++) {
+                    if (i == 0) costs[j] = j;
+                    else {
+                        if (j > 0) {
+                            let newValue = costs[j - 1];
+                            if (a.charAt(i - 1) != b.charAt(j - 1)) newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
+                            costs[j - 1] = lastValue;
+                            lastValue = newValue;
                         }
                     }
                 }
+                if (i > 0) costs[b.length] = lastValue;
+            }
+            return costs[b.length];
+        }
+
+        return (longerLength - editDistance(longer, shorter)) / longerLength;
+    };
+
+    const fetchGoogleBook = async (isbn?: string, title?: string, author?: string): Promise<{ coverUrl: string; description?: string; categories?: string[]; foundTitle?: string; foundAuthor?: string }> => {
+        const getInfoFromQuery = async (q: string) => {
+            try {
+                // Debugging Log
+                console.log(`🔍 [GoogleBooks] Visual-First Search: ${q} (Lang: ${user.languagePreference})`);
+
+                const langParam = user.languagePreference ? `&langRestrict=${user.languagePreference}` : '';
+
+                // Add Timeout to prevent hangs
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout
+
+                try {
+                    const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=10${langParam}`, {
+                        signal: controller.signal
+                    });
+                    clearTimeout(timeoutId);
+
+                    if (!res.ok) throw new Error(`Google API Error: ${res.status}`);
+                    const data = await res.json();
+
+                    if (data.items) {
+                        let bestMatch = null;
+                        let bestScore = 0;
+
+                        // "Human Eye" Filter
+                        for (const item of data.items) {
+                            const volume = item.volumeInfo;
+                            const links = volume?.imageLinks;
+
+                            // CRITICAL: Must have a cover
+                            if (!links) continue;
+
+                            // RELEVANCE CHECK
+                            const foundTitleClean = normalizeText(volume.title || '');
+                            const foundAuthorClean = normalizeText(volume.authors ? volume.authors[0] : '');
+                            const inputTitleClean = normalizeText(title || '');
+                            const inputAuthorClean = normalizeText(author || '');
+
+                            const titleScore = calculateSimilarity(foundTitleClean, inputTitleClean);
+
+                            // Threshold passed?
+                            const isRelevant = titleScore > 0.4 || (inputTitleClean.includes(foundTitleClean) || foundTitleClean.includes(inputTitleClean));
+
+
+
+                            if (isRelevant) {
+                                // STRATEGY: Construct High-Res "FIFE" URL
+                                // Research shows this is the most reliable way to get a real cover and avoid "Image Not Available"
+                                // Format: https://books.google.com/books/publisher/content/images/frontcover/{id}?fife=w400-h600&source=gbs_api
+                                let url = `https://books.google.com/books/publisher/content/images/frontcover/${item.id}?fife=w400-h600&source=gbs_api`;
+
+                                // Fallback to standard links if for some reason the ID-based one isn't desired (though it should be primary)
+                                if (!url) {
+                                    url = links.extraLarge || links.large || links.medium || links.thumbnail || links.smallThumbnail;
+                                    if (url && url.startsWith('http:')) url = url.replace('http:', 'https:');
+                                }
+
+                                if (url) {
+                                    // SCORE THE MATCH QUALITY
+                                    // Boost for Description (Rich metadata usually = real cover)
+                                    // Boost for exact title match
+                                    let qualityScore = titleScore;
+                                    if (volume.description) qualityScore += 0.2; // Huge boost for having description
+                                    if (volume.categories) qualityScore += 0.1;
+
+                                    console.log(`👉 Candidate: "${volume.title}" | Sim: ${titleScore.toFixed(2)} | Qual: ${qualityScore.toFixed(2)}`);
+
+                                    if (qualityScore > bestScore) {
+                                        bestScore = qualityScore;
+                                        bestMatch = {
+                                            coverUrl: url,
+                                            description: volume.description,
+                                            categories: volume.categories,
+                                            foundTitle: volume.title,
+                                            foundAuthor: volume.authors ? volume.authors[0] : undefined
+                                        };
+                                    }
+                                }
+                            }
+                        }
+
+                        if (bestMatch) {
+                            console.log(`✅ [GoogleBooks] WINNER: "${bestMatch.foundTitle}"`);
+                            return bestMatch;
+                        }
+                        console.log(`⚠️ [GoogleBooks] Items found but NONE passed validity checks.`);
+                        console.log(`❌ [GoogleBooks] No items found for: ${q}`);
+                    }
+                } catch (fetchErr) {
+                    // Handle AbortError or Network Error
+                    if (fetchErr instanceof Error && fetchErr.name === 'AbortError') {
+                        throw new Error("Request Timeout (8s)");
+                    }
+                    throw fetchErr;
+                }
+
             } catch (e) {
-                console.error("Failed to fetch info", e);
+                console.error("Failed to fetch info for query:", q, e);
             }
             return null;
         };
 
-        // Helper to normalize text: remove accents, remove special chars, lower case
+        // Custom Normalization
         const normalizeText = (text: string) => {
-            return text
-                .normalize('NFD') // Decompose accents (e.g. é -> e + ´)
-                .replace(/[\u0300-\u036f]/g, '') // Remove accent marks
-                .replace(/[#@!$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/g, ' ') // Replace special chars with space
-                .replace(/\s+/g, ' ') // Collapse multiple spaces
-                .trim();
+            if (!text) return '';
+            let t = text.toLowerCase();
+            t = t.replace(/œ/g, 'oe').replace(/æ/g, 'ae').replace(/ß/g, 'ss');
+            return t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/'/g, ' ').replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
         };
 
         const safeTitle = title ? normalizeText(title) : '';
         const safeAuthor = author ? normalizeText(author) : '';
 
-        let info = null;
-
-        // SKIP ISBN Search as per user request - rely on Title + Author for better cover matching
-        // if (isbn) ...
-
-        // Try normalized Title + Author
-        if (safeTitle) {
-            const query = `intitle:"${safeTitle}"${safeAuthor ? ` inauthor:"${safeAuthor}"` : ''}`;
-            info = await getInfoFromQuery(query);
+        // STRATEGY 1: The "Human Mimic" (Broad Search)
+        // Just "Title Author" - Let Google rank them. We verify.
+        const broadQuery = `${safeTitle} ${safeAuthor}`.trim();
+        if (broadQuery) {
+            const info = await getInfoFromQuery(broadQuery);
+            if (info) return info;
         }
 
-        // Fallback: Try just Title if Title+Author failed
-        if (!info && safeTitle) {
-            info = await getInfoFromQuery(`intitle:"${safeTitle}"`);
+        // STRATEGY 2: Open Library Backup (If ISBN exists)
+        // If Google failed us completely, we try to at least get a cover URL from Open Library
+        if (isbn && isbn.length >= 10) {
+            console.log(`⚠️ [System] Google failed. Trying Open Library for ISBN: ${isbn}`);
+            return {
+                coverUrl: `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`,
+                foundTitle: title, // Keep original
+                foundAuthor: author
+            };
         }
 
-        // Last Resort: If normalized failed, try raw title (just in case normalization broke distinct spelling)
-        if (!info && title) {
-            info = await getInfoFromQuery(`intitle:"${title}"`);
+        return { coverUrl: '' };
+    };
+
+    // Helper: Smart Genre Refinement
+    const refineGenres = (rawCategories: string[] | undefined): string[] => {
+        if (!rawCategories || rawCategories.length === 0) return [];
+
+        const BLOCKLIST = ['fiction', 'general', 'books', 'literature', 'novels', 'stories', 'literary'];
+        const refined = new Set<string>();
+
+        rawCategories.forEach(cat => {
+            // Split "Fiction / Fantasy / Epic" -> ["Fiction", "Fantasy", "Epic"]
+            const parts = cat.split('/').map(s => s.trim());
+
+            parts.forEach(p => {
+                const lower = p.toLowerCase();
+                // Filter out boring words unless it's the ONLY thing we have? 
+                // Actually, if we have "Fantasy", we don't need "Fiction".
+                if (!BLOCKLIST.includes(lower)) {
+                    // Capitalize nicely (Title Case)
+                    const niceName = p.charAt(0).toUpperCase() + p.slice(1);
+                    refined.add(niceName);
+                }
+            });
+        });
+
+        // If we filtered EVERYTHING out (e.g. only had "Fiction"), put "Fiction" back
+        if (refined.size === 0 && rawCategories.some(c => c.toLowerCase().includes('fiction'))) {
+            return ['Fiction'];
         }
 
-        return {
-            coverUrl: info?.coverUrl || '',
-            description: info?.description,
-            categories: info?.categories,
-            foundTitle: info?.foundTitle,
-            foundAuthor: info?.foundAuthor
-        };
+        return Array.from(refined);
     };
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -223,47 +347,67 @@ export default function ProfilePage() {
                     return !store.books.some(ex => ex.title === b.title && ex.author === b.author);
                 });
 
-                setEnrichmentTotal(toAdd.length);
+                console.log(`[Import Debug] Total parsed: ${parsedBooks.length}. New to add: ${toAdd.length}`);
+
+                if (toAdd.length === 0) {
+                    alert("⚠️ No new books found. All books in this CSV are already in your library.");
+                    setIsImporting(false);
+                    return;
+                }
 
                 setEnrichmentTotal(toAdd.length);
 
-                // PROCESS IN BATCHES for speed
-                const BATCH_SIZE = 4;
-                for (let i = 0; i < toAdd.length; i += BATCH_SIZE) {
-                    const batch = toAdd.slice(i, i + BATCH_SIZE);
+                // --- RATE LIMITED QUEUE IMPLEMENTATION ---
+                // Config: Concurrency 1, Interval 250ms
+                const processInQueue = async <T,>(items: T[], fn: (item: T) => Promise<void>) => {
+                    for (const item of items) {
+                        try {
+                            await fn(item);
+                        } catch (e) {
+                            console.error("Queue item crashed:", e);
+                        }
+                        // Delay to prevent 429s (simple throttle)
+                        await new Promise(resolve => setTimeout(resolve, 250));
+                    }
+                };
 
-                    // Update UI to show what we are working on (first one of batch)
-                    setCurrentEnrichingTitle(batch[0].title || 'Processing batch...');
+                await processInQueue(toAdd, async (b) => {
+                    try {
+                        console.log(`[Import Debug] Processing: ${b.title}`);
+                        // Update UI
+                        setCurrentEnrichingTitle(b.title || 'Processing...');
 
-                    await Promise.all(batch.map(async (b) => {
                         const { coverUrl, description, categories, foundTitle, foundAuthor } = await fetchGoogleBook(b.isbn, b.title, b.author);
 
                         // Use fetched categories if no tags exist from CSV
-                        const finalTags = (b.tags && b.tags.length > 0) ? b.tags : (categories || []);
+                        // APPLY SMART GENRE FILTERING
+                        let finalTags = (b.tags && b.tags.length > 0) ? b.tags : (categories || []);
+                        if (!b.tags || b.tags.length === 0) {
+                            finalTags = refineGenres(categories);
+                        }
 
                         const newBook: Book = {
                             ...b,
                             id: crypto.randomUUID(),
-                            title: foundTitle || b.title || 'Unknown Title', // Prefer Google Title
-                            author: foundAuthor || b.author || 'Unknown Author', // Prefer Google Author
+                            title: foundTitle || b.title || 'Unknown Title',
+                            author: foundAuthor || b.author || 'Unknown Author',
                             tags: finalTags,
                             status: b.status || 'tbr',
                             progress: b.progress || 0,
                             pageCount: b.pageCount || 0,
-                            coverUrl: coverUrl || '',
+                            coverUrl: coverUrl || '', // Google Url
                             description: description,
                             isbn: b.isbn
                         } as Book;
 
-                        store.addBook(newBook);
+                        await store.addBook(newBook);
                         setImportCount(prev => prev + 1);
-                    }));
-
-                    // Small breather between batches to respect rate limits
-                    if (i + BATCH_SIZE < toAdd.length) {
-                        await new Promise(r => setTimeout(r, 250));
+                    } catch (err: any) {
+                        console.error(`❌ Failed to import "${b.title}":`, err);
+                        setImportError(err.message || JSON.stringify(err));
+                        // Continue queue...
                     }
-                }
+                });
 
                 setIsImporting(false);
                 setEnrichmentTotal(0);
@@ -734,6 +878,23 @@ export default function ProfilePage() {
                                                     <span className="text-sm font-bold text-text-muted group-hover:text-text-main">
                                                         {isImporting ? 'Importing...' : 'Click to select CSV'}
                                                     </span>
+                                                    {isImporting && (
+                                                        <div className="w-full max-w-[200px] mt-2">
+                                                            <div className="flex justify-between text-xs text-text-muted mb-1">
+                                                                <span>{importCount} / {enrichmentTotal}</span>
+                                                                <span>{Math.round((importCount / (enrichmentTotal || 1)) * 100)}%</span>
+                                                            </div>
+                                                            <div className="w-full h-1.5 bg-card-border rounded-full overflow-hidden">
+                                                                <div className="h-full bg-accent transition-all duration-300" style={{ width: `${(importCount / (enrichmentTotal || 1)) * 100}%` }}></div>
+                                                            </div>
+                                                            <p className="text-[10px] text-text-muted mt-1 truncate animate-pulse">{currentEnrichingTitle}</p>
+                                                        </div>
+                                                    )}
+                                                    {importError && (
+                                                        <div className="mt-2 p-2 bg-red-500/10 border border-red-500/20 rounded text-xs text-red-500 max-w-full break-words">
+                                                            Error: {importError}
+                                                        </div>
+                                                    )}
                                                     <input
                                                         type="file"
                                                         accept=".csv"
