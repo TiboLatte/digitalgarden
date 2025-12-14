@@ -188,7 +188,14 @@ export const useLibraryStore = create<LibraryState>()(
 
                 if (Object.keys(dbUpdates).length > 0) {
                     await retryDB(async () => {
-                        const { error } = await supabase.from('profiles').update(dbUpdates).eq('id', user.id);
+                        const { error } = await supabase
+                            .from('profiles')
+                            .upsert({
+                                id: user.id,
+                                ...dbUpdates
+                            }, {
+                                onConflict: 'id'
+                            });
                         if (error) throw error;
                     });
                 }
