@@ -441,20 +441,6 @@ export default function ProfilePage() {
         reader.readAsText(file);
     };
 
-    const handleSave = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsSaving(true);
-
-        // Simulate network delay
-        await new Promise(resolve => setTimeout(resolve, 600));
-
-        updateUser(formData);
-        setIsSaving(false);
-        setShowSaved(true);
-
-        setTimeout(() => setShowSaved(false), 3000);
-    };
-
     const handleExport = () => {
         const store = useLibraryStore.getState();
         const exportData = {
