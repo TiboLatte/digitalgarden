@@ -23,9 +23,13 @@ export default function LoginPage() {
                 // Ensure store is synced BEFORE navigating
                 if (loading) {
                     try {
-                        await useLibraryStore.getState().syncWithCloud(session.user);
+                        // Force a timeout so we never hang indefinitely
+                        const syncPromise = useLibraryStore.getState().syncWithCloud(session.user);
+                        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Sync Timeout")), 4000));
+
+                        await Promise.race([syncPromise, timeoutPromise]);
                     } catch (err) {
-                        console.error("Login sync failed, proceeding anyway:", err);
+                        console.error("Login sync failed or timed out, proceeding anyway:", err);
                     } finally {
                         router.push('/');
                     }

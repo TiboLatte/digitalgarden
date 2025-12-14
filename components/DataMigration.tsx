@@ -18,11 +18,8 @@ export function DataMigration() {
 
         // 2. Listen for Auth Changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-            console.log(`🔐 [Auth Event] ${event}`, session?.user?.email);
-
             if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
                 if (session?.user) {
-                    console.log("⚡ Triggering SmartSync from Auth Event");
                     await handleSmartSync(session.user);
                 }
             } else if (event === 'SIGNED_OUT') {
