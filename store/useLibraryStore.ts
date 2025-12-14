@@ -108,12 +108,12 @@ export const useLibraryStore = create<LibraryState>()(
                 .from('profiles')
                 .select('*')
                 .eq('id', user.id)
-                .single();
+                .maybeSingle();
 
             if (booksError || notesError || profileError) {
-                console.error("Sync failed", booksError, notesError, profileError);
-                set({ isLoading: false });
-                return;
+                console.error("Sync partial failure", booksError, notesError, profileError);
+                // Do NOT return. We must still set the User Identity so they are "logged in".
+                // We'll just continue with whatever data we got (or empty arrays).
             }
 
             // Transform snake_case to camelCase mapping
@@ -160,7 +160,9 @@ export const useLibraryStore = create<LibraryState>()(
                     readingGoal: profile.reading_goal || currentUser.readingGoal,
                     isPro: profile.is_pro || currentUser.isPro,
                     languagePreference: profile.language_preference || currentUser.languagePreference,
-                } : {})
+                } : {
+                    name: currentUser.name === "Guest" && user.email ? user.email.split('@')[0] : currentUser.name
+                })
             };
 
             set({

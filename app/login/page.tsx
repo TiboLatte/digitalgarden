@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
+import { useLibraryStore } from '@/store/useLibraryStore';
 import { useRouter } from 'next/navigation';
 import { Sparkles, ArrowRight, Loader2, Lock, Mail } from 'lucide-react';
 
@@ -17,17 +18,17 @@ export default function LoginPage() {
 
     // Event-driven redirect to ensure session persistence
     useEffect(() => {
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             if (event === 'SIGNED_IN' && session) {
-                // Only redirect if we are mistakenly on the login page while authenticated
-                // AND we are not currently loading (which means we just submitted the form)
-                // Actually, simpler: If we have a session, go home.
-                // But we need to avoid the loop for existing sessions if they are "guest" sessions or similar? 
-                // No, Supabase Auth 'session' means logged in.
-
-                // We use window.location to be safe, but let's check if we just signed in.
+                // Ensure store is synced BEFORE navigating
                 if (loading) {
-                    window.location.href = '/';
+                    try {
+                        await useLibraryStore.getState().syncWithCloud(session.user);
+                    } catch (err) {
+                        console.error("Login sync failed, proceeding anyway:", err);
+                    } finally {
+                        router.push('/');
+                    }
                 }
             }
         });

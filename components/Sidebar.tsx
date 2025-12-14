@@ -1,6 +1,7 @@
 'use client';
 
 import { createClient } from '@/lib/supabase';
+import { useLibraryStore } from '@/store/useLibraryStore';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -9,17 +10,9 @@ import { LayoutGrid, Library, User, BookOpen, Calendar, LogOut, LogIn } from 'lu
 export function Sidebar() {
     const router = useRouter();
     const supabase = createClient();
-    const [user, setUser] = useState<any>(null);
-
-    useEffect(() => {
-        supabase.auth.getUser().then(({ data }) => setUser(data.user));
-
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            setUser(session?.user ?? null);
-        });
-
-        return () => subscription.unsubscribe();
-    }, []);
+    const user = useLibraryStore((state) => state.user);
+    // Derived state: guest user has empty email
+    const isLoggedIn = !!user.email;
 
     const handleSignOut = async () => {
         await supabase.auth.signOut();
@@ -56,7 +49,7 @@ export function Sidebar() {
             </nav>
 
             <div className="pt-4 border-t border-card-border">
-                {user ? (
+                {isLoggedIn ? (
                     <button
                         onClick={handleSignOut}
                         className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-red-500 hover:bg-red-50 transition-colors text-left font-medium"

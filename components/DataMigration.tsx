@@ -18,8 +18,13 @@ export function DataMigration() {
 
         // 2. Listen for Auth Changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-                await handleSmartSync(session?.user.id);
+            console.log(`🔐 [Auth Event] ${event}`, session?.user?.email);
+
+            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+                if (session?.user) {
+                    console.log("⚡ Triggering SmartSync from Auth Event");
+                    await handleSmartSync(session.user);
+                }
             } else if (event === 'SIGNED_OUT') {
                 syncWithCloud(); // Clears data via store logic
             }
@@ -30,12 +35,11 @@ export function DataMigration() {
         };
     }, []);
 
-    const handleSmartSync = async (userId: string | undefined) => {
-        if (!userId) return;
+    const handleSmartSync = async (user: any) => {
+        if (!user) return;
 
         // A. Fetch Cloud Data first
-        // We need the full user object to pass to syncWithCloud to bypass the internal fetch
-        const { data: { user } } = await supabase.auth.getUser();
+        // Pass the user object directly to bypass internal fetch issues
         await syncWithCloud(user);
 
         // B. Check if Cloud was empty but we have Old LocalStorage (Rescue Mission)
@@ -51,7 +55,7 @@ export function DataMigration() {
                     if (localBooks.length > 0) {
                         console.log("Found disconnected local data. Migrating to cloud...");
                         setStatus('migrating');
-                        await uploadToCloud(userId, localBooks, localNotes);
+                        await uploadToCloud(user.id, localBooks, localNotes);
                         // Clear old storage to prevent re-migration
                         localStorage.removeItem('digital-garden-storage');
                         await syncWithCloud(); // Refresh with new cloud data
