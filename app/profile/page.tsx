@@ -47,6 +47,22 @@ export default function ProfilePage() {
         window.location.href = '/';
     };
 
+    const handleSave = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
+        setIsSaving(true);
+        setShowSaved(false);
+
+        try {
+            await updateUser(formData);
+            setShowSaved(true);
+            setTimeout(() => setShowSaved(false), 3000);
+        } catch (error) {
+            console.error('Failed to save profile:', error);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     if (!mounted || !user) return null;
 
     // Stats Logic
