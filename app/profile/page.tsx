@@ -588,107 +588,109 @@ export default function ProfilePage() {
                     <section className="bg-card rounded-xl border border-card-border p-8 animate-in fade-in duration-300">
 
                         {activeTab === 'account' && (
-                            <form className="flex flex-col gap-8" onSubmit={handleSave}>
-                                <div className="flex items-center justify-between mb-2">
-                                    <h3 className="text-text-main text-2xl font-bold font-serif flex items-center gap-3">
-                                        Personal Information
-                                    </h3>
-                                    {showSaved && <span className="text-green-600 font-bold flex items-center gap-1 animate-in fade-in"><Check size={16} /> Saved!</span>}
-                                </div>
+                            <>
+                                <form className="flex flex-col gap-8" onSubmit={handleSave}>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <h3 className="text-text-main text-2xl font-bold font-serif flex items-center gap-3">
+                                            Personal Information
+                                        </h3>
+                                        {showSaved && <span className="text-green-600 font-bold flex items-center gap-1 animate-in fade-in"><Check size={16} /> Saved!</span>}
+                                    </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                        <div className="flex flex-col gap-2 group">
+                                            <label className="text-sm font-bold text-text-muted uppercase tracking-wider group-focus-within:text-text-main transition-colors">Full Name</label>
+                                            <input
+                                                className="w-full bg-transparent border-0 border-b border-card-border focus:border-text-main focus:ring-0 px-0 py-2 text-text-main text-lg font-medium placeholder:text-gray-300 transition-colors outline-none"
+                                                type="text"
+                                                value={formData.name || ''}
+                                                onChange={(e) => handleInputChange('name', e.target.value)}
+                                            />
+                                        </div>
+                                        <div className="flex flex-col gap-2 group">
+                                            <label className="text-sm font-bold text-text-muted uppercase tracking-wider group-focus-within:text-text-main transition-colors">Email Address</label>
+                                            <input
+                                                className="w-full bg-transparent border-0 border-b border-card-border focus:border-text-main focus:ring-0 px-0 py-2 text-text-main text-lg font-medium placeholder:text-gray-300 transition-colors outline-none"
+                                                type="email"
+                                                value={formData.email || ''}
+                                                onChange={(e) => handleInputChange('email', e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+
                                     <div className="flex flex-col gap-2 group">
-                                        <label className="text-sm font-bold text-text-muted uppercase tracking-wider group-focus-within:text-text-main transition-colors">Full Name</label>
+                                        <label className="text-sm font-bold text-text-muted uppercase tracking-wider group-focus-within:text-text-main transition-colors">Avatar URL</label>
                                         <input
                                             className="w-full bg-transparent border-0 border-b border-card-border focus:border-text-main focus:ring-0 px-0 py-2 text-text-main text-lg font-medium placeholder:text-gray-300 transition-colors outline-none"
                                             type="text"
-                                            value={formData.name || ''}
-                                            onChange={(e) => handleInputChange('name', e.target.value)}
+                                            placeholder="https://..."
+                                            value={formData.avatarUrl || ''}
+                                            onChange={(e) => handleInputChange('avatarUrl', e.target.value)}
                                         />
+                                        <p className="text-xs text-text-muted text-right">Paste a link to an image</p>
                                     </div>
+
                                     <div className="flex flex-col gap-2 group">
-                                        <label className="text-sm font-bold text-text-muted uppercase tracking-wider group-focus-within:text-text-main transition-colors">Email Address</label>
+                                        <label className="text-sm font-bold text-text-muted uppercase tracking-wider group-focus-within:text-text-main transition-colors">Reader's Bio</label>
+                                        <textarea
+                                            className="w-full bg-transparent border border-card-border rounded-lg focus:border-text-main focus:ring-0 px-4 py-3 text-text-main text-base leading-relaxed resize-none transition-colors outline-none focus:shadow-sm"
+                                            rows={3}
+                                            value={formData.bio || ''}
+                                            onChange={(e) => handleInputChange('bio', e.target.value)}
+                                        />
+                                        <p className="text-xs text-text-muted text-right">Visible on your public profile</p>
+                                    </div>
+
+                                    <div className="flex flex-col gap-2 group">
+                                        <label className="text-sm font-bold text-text-muted uppercase tracking-wider group-focus-within:text-text-main transition-colors">Location</label>
                                         <input
                                             className="w-full bg-transparent border-0 border-b border-card-border focus:border-text-main focus:ring-0 px-0 py-2 text-text-main text-lg font-medium placeholder:text-gray-300 transition-colors outline-none"
-                                            type="email"
-                                            value={formData.email || ''}
-                                            onChange={(e) => handleInputChange('email', e.target.value)}
+                                            type="text"
+                                            value={formData.location || ''}
+                                            onChange={(e) => handleInputChange('location', e.target.value)}
                                         />
                                     </div>
+
+                                    <div className="h-px w-full bg-card-border my-2"></div>
+
+                                    <div className="flex justify-end pt-4">
+                                        <button type="button" onClick={() => setFormData(user)} className="text-text-muted font-bold px-6 py-2.5 hover:text-text-main transition-colors mr-2">Reset</button>
+                                        <button type="submit" disabled={isSaving} className="bg-text-main hover:bg-text-main/90 text-card font-bold px-8 py-2.5 rounded-lg shadow-md transition-all active:scale-95 flex items-center gap-2 disabled:opacity-70 disabled:cursor-wait">
+                                            {isSaving ? 'Saving...' : <><Save size={16} /> Save Changes</>}
+                                        </button>
+                                    </div>
+                                </form>
+
+                                {/* DANGER ZONE / ACCOUNT ACTIONS */}
+                                <div className="mt-8 pt-8 border-t-2 border-dashed border-card-border">
+                                    <h3 className="text-xl font-bold font-serif text-text-main flex items-center gap-2 mb-4">
+                                        <LogOut size={20} className="text-text-muted" /> Account Actions
+                                    </h3>
+
+                                    <div className="p-6 bg-card border border-card-border rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                                        <div>
+                                            <p className="font-bold text-text-main">Session Management</p>
+                                            <p className="text-xs text-text-muted">Securely log out of your account on this device.</p>
+                                        </div>
+
+                                        {user.email ? (
+                                            <button
+                                                onClick={handleSignOut}
+                                                className="flex items-center gap-2 bg-red-50 text-red-600 border border-red-200 px-6 py-2.5 rounded-lg font-bold hover:bg-red-100 transition-colors w-full md:w-auto justify-center"
+                                            >
+                                                <LogOut size={16} /> Disconnect
+                                            </button>
+                                        ) : (
+                                            <Link
+                                                href="/login"
+                                                className="flex items-center gap-2 bg-emerald-50 text-emerald-600 border border-emerald-200 px-6 py-2.5 rounded-lg font-bold hover:bg-emerald-100 transition-colors w-full md:w-auto justify-center"
+                                            >
+                                                <LogIn size={16} /> Log In
+                                            </Link>
+                                        )}
+                                    </div>
                                 </div>
-
-                                <div className="flex flex-col gap-2 group">
-                                    <label className="text-sm font-bold text-text-muted uppercase tracking-wider group-focus-within:text-text-main transition-colors">Avatar URL</label>
-                                    <input
-                                        className="w-full bg-transparent border-0 border-b border-card-border focus:border-text-main focus:ring-0 px-0 py-2 text-text-main text-lg font-medium placeholder:text-gray-300 transition-colors outline-none"
-                                        type="text"
-                                        placeholder="https://..."
-                                        value={formData.avatarUrl || ''}
-                                        onChange={(e) => handleInputChange('avatarUrl', e.target.value)}
-                                    />
-                                    <p className="text-xs text-text-muted text-right">Paste a link to an image</p>
-                                </div>
-
-                                <div className="flex flex-col gap-2 group">
-                                    <label className="text-sm font-bold text-text-muted uppercase tracking-wider group-focus-within:text-text-main transition-colors">Reader's Bio</label>
-                                    <textarea
-                                        className="w-full bg-transparent border border-card-border rounded-lg focus:border-text-main focus:ring-0 px-4 py-3 text-text-main text-base leading-relaxed resize-none transition-colors outline-none focus:shadow-sm"
-                                        rows={3}
-                                        value={formData.bio || ''}
-                                        onChange={(e) => handleInputChange('bio', e.target.value)}
-                                    />
-                                    <p className="text-xs text-text-muted text-right">Visible on your public profile</p>
-                                </div>
-
-                                <div className="flex flex-col gap-2 group">
-                                    <label className="text-sm font-bold text-text-muted uppercase tracking-wider group-focus-within:text-text-main transition-colors">Location</label>
-                                    <input
-                                        className="w-full bg-transparent border-0 border-b border-card-border focus:border-text-main focus:ring-0 px-0 py-2 text-text-main text-lg font-medium placeholder:text-gray-300 transition-colors outline-none"
-                                        type="text"
-                                        value={formData.location || ''}
-                                        onChange={(e) => handleInputChange('location', e.target.value)}
-                                    />
-                                </div>
-
-                                <div className="h-px w-full bg-card-border my-2"></div>
-
-                                <div className="flex justify-end pt-4">
-                                    <button type="button" onClick={() => setFormData(user)} className="text-text-muted font-bold px-6 py-2.5 hover:text-text-main transition-colors mr-2">Reset</button>
-                                    <button type="submit" disabled={isSaving} className="bg-text-main hover:bg-text-main/90 text-card font-bold px-8 py-2.5 rounded-lg shadow-md transition-all active:scale-95 flex items-center gap-2 disabled:opacity-70 disabled:cursor-wait">
-                                        {isSaving ? 'Saving...' : <><Save size={16} /> Save Changes</>}
-                                    </button>
-                                </div>
-                            </form>
-
-                            {/* DANGER ZONE / ACCOUNT ACTIONS */}
-                        <div className="mt-8 pt-8 border-t-2 border-dashed border-card-border">
-                            <h3 className="text-xl font-bold font-serif text-text-main flex items-center gap-2 mb-4">
-                                <LogOut size={20} className="text-text-muted" /> Account Actions
-                            </h3>
-
-                            <div className="p-6 bg-card border border-card-border rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                                <div>
-                                    <p className="font-bold text-text-main">Session Management</p>
-                                    <p className="text-xs text-text-muted">Securely log out of your account on this device.</p>
-                                </div>
-
-                                {user.email ? (
-                                    <button
-                                        onClick={handleSignOut}
-                                        className="flex items-center gap-2 bg-red-50 text-red-600 border border-red-200 px-6 py-2.5 rounded-lg font-bold hover:bg-red-100 transition-colors w-full md:w-auto justify-center"
-                                    >
-                                        <LogOut size={16} /> Disconnect
-                                    </button>
-                                ) : (
-                                    <Link
-                                        href="/login"
-                                        className="flex items-center gap-2 bg-emerald-50 text-emerald-600 border border-emerald-200 px-6 py-2.5 rounded-lg font-bold hover:bg-emerald-100 transition-colors w-full md:w-auto justify-center"
-                                    >
-                                        <LogIn size={16} /> Log In
-                                    </Link>
-                                )}
-                            </div>
-                        </div>
+                            </>
                         )}
 
                         {activeTab === 'goals' && (
