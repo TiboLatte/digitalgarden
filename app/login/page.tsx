@@ -33,9 +33,6 @@ export default function LoginPage() {
                 setError("Check your email for the confirmation link!");
                 setLoading(false);
             } else {
-                // Clear any existing session first
-                await freshSupabase.auth.signOut();
-
                 const { error } = await freshSupabase.auth.signInWithPassword({
                     email,
                     password,
