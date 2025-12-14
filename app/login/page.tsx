@@ -21,11 +21,8 @@ export default function LoginPage() {
         setLoading(true);
 
         try {
-            // Create fresh client to avoid cached session issues
-            const freshSupabase = createClient();
-
             if (isSignUp) {
-                const { error } = await freshSupabase.auth.signUp({
+                const { error } = await supabase.auth.signUp({
                     email,
                     password,
                 });
@@ -33,14 +30,14 @@ export default function LoginPage() {
                 setError("Check your email for the confirmation link!");
                 setLoading(false);
             } else {
-                const { error } = await freshSupabase.auth.signInWithPassword({
+                const { error } = await supabase.auth.signInWithPassword({
                     email,
                     password,
                 });
                 if (error) throw error;
 
                 // Wait for session to be fully persisted to cookies
-                await new Promise(resolve => setTimeout(resolve, 500));
+                await new Promise(resolve => setTimeout(resolve, 300));
 
                 // Successful login - force full page reload
                 window.location.href = '/';
