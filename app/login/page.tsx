@@ -38,8 +38,9 @@ export default function LoginPage() {
         try {
             addLog("Starting Data Sync...");
             // Force a timeout so we never hang indefinitely on mobile networks
+            // Increased to 15s to handle cold starts
             const syncPromise = useLibraryStore.getState().syncWithCloud(session.user);
-            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Sync Timeout")), 5000));
+            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Sync Timeout")), 15000));
 
             await Promise.race([syncPromise, timeoutPromise]);
             addLog("Data Sync Completed Successfully.");
@@ -49,10 +50,12 @@ export default function LoginPage() {
         }
 
         // 3. Redirect
-        addLog("Initiating Redirect to '/'...");
+        addLog("Initiating Hard Redirect to '/'...");
         setLoading(false);
-        router.push('/');
-        addLog("Router Push called.");
+        // We use window.location.href instead of router.push to FORCE a navigation
+        // regardless of Next.js router state.
+        window.location.href = '/';
+        addLog("Window Location assigned.");
     };
 
     // Event-driven redirect to ensure session persistence
