@@ -204,7 +204,12 @@ export default function LoginPage() {
                         </button>
                     </div>
                     <div className="mt-8 p-4 bg-zinc-100 rounded-lg text-[10px] font-mono text-zinc-600 h-32 overflow-y-auto border border-zinc-200">
-                        <p className="font-bold text-zinc-900 mb-2">DEBUG LOGS:</p>
+                        <div className="flex justify-between items-center mb-2">
+                            <p className="font-bold text-zinc-900">DEBUG LOGS:</p>
+                            <button onClick={() => window.location.href = '/'} className="px-2 py-1 bg-red-100 text-red-600 text-[9px] font-bold rounded hover:bg-red-200">
+                                FORCE ENTER
+                            </button>
+                        </div>
                         {logs.length === 0 ? <p className="opacity-50">Waiting for action...</p> : logs.map((l, i) => (
                             <div key={i} className="border-b border-zinc-200/50 py-1">{l}</div>
                         ))}
