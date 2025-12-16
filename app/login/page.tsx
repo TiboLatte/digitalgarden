@@ -68,8 +68,9 @@ export default function LoginPage() {
                 }
 
                 // 3. Redirect
+                console.log("Redirecting to dashboard...");
+                setLoading(false); // Ensure spinner stops even if redirect lags
                 router.push('/');
-                router.refresh(); // Ensure server components re-run
             }
         } catch (err: any) {
             console.error("Login error:", err);
