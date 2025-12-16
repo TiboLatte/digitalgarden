@@ -22,20 +22,59 @@ export default function LoginPage() {
         console.log(msg);
     };
 
+    const handleLoginSuccess = async (session: any) => {
+        addLog("HandleLoginSuccess triggering...");
+        if (!session?.user) {
+            addLog("No user in session. Aborting success handler.");
+            return;
+        }
+
+        // Prevent double-firing
+        if (loading) {
+            addLog("Already loading/redirecting. Auto-handler running in parallel (benign).");
+        }
+        setLoading(true);
+
+        try {
+            addLog("Starting Data Sync...");
+            // Force a timeout so we never hang indefinitely on mobile networks
+            const syncPromise = useLibraryStore.getState().syncWithCloud(session.user);
+            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Sync Timeout")), 5000));
+
+            await Promise.race([syncPromise, timeoutPromise]);
+            addLog("Data Sync Completed Successfully.");
+        } catch (syncErr: any) {
+            addLog(`Sync Warning: ${syncErr.message || syncErr}`);
+            console.error("Login sync warning:", syncErr);
+        }
+
+        // 3. Redirect
+        addLog("Initiating Redirect to '/'...");
+        setLoading(false);
+        router.push('/');
+        addLog("Router Push called.");
+    };
+
     // Event-driven redirect to ensure session persistence
-    // FAIL-SAFE: This listener is now a backup. The primary login flow is handled explicitly in handleAuth.
     useEffect(() => {
+        // Check if we are ALREADY logged in on mount (e.g. hydration)
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session) {
+                addLog("Initial Session Check: FOUND. Auto-redirecting...");
+                handleLoginSuccess(session);
+            }
+        });
+
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-            // Only react to explicit SIGNED_IN events if we aren't already handling it manually
-            // This is mostly for "magic link" or "OAuth" returns where handleAuth isn't called.
-            if (event === 'SIGNED_IN' && session && !loading) {
-                addLog("Auth State Change: SIGNED_IN");
-                // We simply check if we are already on the dashboard to avoid loops, though router.push usually handles it.
+            addLog(`Auth Event: ${event}`);
+            if (event === 'SIGNED_IN' && session) {
+                addLog("Auth State Change: SIGNED_IN. Auto-redirecting...");
+                handleLoginSuccess(session);
             }
         });
 
         return () => subscription.unsubscribe();
-    }, [supabase, loading]);
+    }, [supabase]);
 
     const handleAuth = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -73,28 +112,8 @@ export default function LoginPage() {
                 }
 
                 addLog("Sign In Successful. Session OK.");
-
-                // 2. Explicitly Sync State BEFORE Redirecting
-                // This ensures that when the user hits the dashboard, the data is ready (or loading state is handled)
-                try {
-                    addLog("Starting Data Sync...");
-                    // Force a timeout so we never hang indefinitely on mobile networks
-                    const syncPromise = useLibraryStore.getState().syncWithCloud(data.session.user);
-                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Sync Timeout")), 5000));
-
-                    await Promise.race([syncPromise, timeoutPromise]);
-                    addLog("Data Sync Completed Successfully.");
-                } catch (syncErr: any) {
-                    addLog(`Sync Warning: ${syncErr.message || syncErr}`);
-                    console.error("Login sync warning:", syncErr);
-                    // We don't block login on sync failure, the dashboard will try again on mount
-                }
-
-                // 3. Redirect
-                addLog("Initiating Redirect to '/'...");
-                setLoading(false); // Ensure spinner stops even if redirect lags
-                router.push('/');
-                addLog("Router Push called.");
+                // Manual login success
+                await handleLoginSuccess(data.session);
             }
         } catch (err: any) {
             addLog(`CRITICAL ERROR: ${err.message}`);
