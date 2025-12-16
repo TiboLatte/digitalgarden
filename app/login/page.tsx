@@ -15,6 +15,12 @@ export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
+    const [logs, setLogs] = useState<string[]>([]);
+
+    const addLog = (msg: string) => {
+        setLogs(prev => [...prev, `${new Date().toLocaleTimeString()}: ${msg}`]);
+        console.log(msg);
+    };
 
     // Event-driven redirect to ensure session persistence
     // FAIL-SAFE: This listener is now a backup. The primary login flow is handled explicitly in handleAuth.
@@ -23,6 +29,7 @@ export default function LoginPage() {
             // Only react to explicit SIGNED_IN events if we aren't already handling it manually
             // This is mostly for "magic link" or "OAuth" returns where handleAuth isn't called.
             if (event === 'SIGNED_IN' && session && !loading) {
+                addLog("Auth State Change: SIGNED_IN");
                 // We simply check if we are already on the dashboard to avoid loops, though router.push usually handles it.
             }
         });
@@ -34,45 +41,63 @@ export default function LoginPage() {
         e.preventDefault();
         setError(null);
         setLoading(true);
+        setLogs([]); // Clear previous logs
+        addLog("Starting authentication process...");
 
         try {
             if (isSignUp) {
+                addLog("Attempting Sign Up...");
                 const { error } = await supabase.auth.signUp({
                     email,
                     password,
                 });
                 if (error) throw error;
+                addLog("Sign Up successful. Check email.");
                 setError("Check your email for the confirmation link!");
                 setLoading(false);
             } else {
                 // 1. Authenticate
+                addLog("Attempting Sign In...");
                 const { data, error } = await supabase.auth.signInWithPassword({
                     email,
                     password,
                 });
 
-                if (error) throw error;
-                if (!data.session) throw new Error("No session created");
+                if (error) {
+                    addLog(`Sign In Failed: ${error.message}`);
+                    throw error;
+                }
+                if (!data.session) {
+                    addLog("Sign In Success but NO SESSION returned.");
+                    throw new Error("No session created");
+                }
+
+                addLog("Sign In Successful. Session OK.");
 
                 // 2. Explicitly Sync State BEFORE Redirecting
                 // This ensures that when the user hits the dashboard, the data is ready (or loading state is handled)
                 try {
+                    addLog("Starting Data Sync...");
                     // Force a timeout so we never hang indefinitely on mobile networks
                     const syncPromise = useLibraryStore.getState().syncWithCloud(data.session.user);
                     const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Sync Timeout")), 5000));
 
                     await Promise.race([syncPromise, timeoutPromise]);
-                } catch (syncErr) {
+                    addLog("Data Sync Completed Successfully.");
+                } catch (syncErr: any) {
+                    addLog(`Sync Warning: ${syncErr.message || syncErr}`);
                     console.error("Login sync warning:", syncErr);
                     // We don't block login on sync failure, the dashboard will try again on mount
                 }
 
                 // 3. Redirect
-                console.log("Redirecting to dashboard...");
+                addLog("Initiating Redirect to '/'...");
                 setLoading(false); // Ensure spinner stops even if redirect lags
                 router.push('/');
+                addLog("Router Push called.");
             }
         } catch (err: any) {
+            addLog(`CRITICAL ERROR: ${err.message}`);
             console.error("Login error:", err);
             setError(err.message || "An unexpected error occurred");
             setLoading(false);
@@ -158,6 +183,12 @@ export default function LoginPage() {
                         >
                             {isSignUp ? 'Already have a garden? Log in' : "No account yet? Plant one"}
                         </button>
+                    </div>
+                    <div className="mt-8 p-4 bg-zinc-100 rounded-lg text-[10px] font-mono text-zinc-600 h-32 overflow-y-auto border border-zinc-200">
+                        <p className="font-bold text-zinc-900 mb-2">DEBUG LOGS:</p>
+                        {logs.length === 0 ? <p className="opacity-50">Waiting for action...</p> : logs.map((l, i) => (
+                            <div key={i} className="border-b border-zinc-200/50 py-1">{l}</div>
+                        ))}
                     </div>
                 </div>
             </div>
