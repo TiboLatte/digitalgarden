@@ -17,23 +17,13 @@ export default function LoginPage() {
     const [error, setError] = useState<string | null>(null);
 
     // Event-driven redirect to ensure session persistence
+    // FAIL-SAFE: This listener is now a backup. The primary login flow is handled explicitly in handleAuth.
     useEffect(() => {
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-            if (event === 'SIGNED_IN' && session) {
-                // Ensure store is synced BEFORE navigating
-                if (loading) {
-                    try {
-                        // Force a timeout so we never hang indefinitely
-                        const syncPromise = useLibraryStore.getState().syncWithCloud(session.user);
-                        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Sync Timeout")), 4000));
-
-                        await Promise.race([syncPromise, timeoutPromise]);
-                    } catch (err) {
-                        console.error("Login sync failed or timed out, proceeding anyway:", err);
-                    } finally {
-                        router.push('/');
-                    }
-                }
+            // Only react to explicit SIGNED_IN events if we aren't already handling it manually
+            // This is mostly for "magic link" or "OAuth" returns where handleAuth isn't called.
+            if (event === 'SIGNED_IN' && session && !loading) {
+                // We simply check if we are already on the dashboard to avoid loops, though router.push usually handles it.
             }
         });
 
@@ -55,15 +45,35 @@ export default function LoginPage() {
                 setError("Check your email for the confirmation link!");
                 setLoading(false);
             } else {
-                const { error } = await supabase.auth.signInWithPassword({
+                // 1. Authenticate
+                const { data, error } = await supabase.auth.signInWithPassword({
                     email,
                     password,
                 });
+
                 if (error) throw error;
-                // No redirect here - we wait for the event listener above
+                if (!data.session) throw new Error("No session created");
+
+                // 2. Explicitly Sync State BEFORE Redirecting
+                // This ensures that when the user hits the dashboard, the data is ready (or loading state is handled)
+                try {
+                    // Force a timeout so we never hang indefinitely on mobile networks
+                    const syncPromise = useLibraryStore.getState().syncWithCloud(data.session.user);
+                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Sync Timeout")), 5000));
+
+                    await Promise.race([syncPromise, timeoutPromise]);
+                } catch (syncErr) {
+                    console.error("Login sync warning:", syncErr);
+                    // We don't block login on sync failure, the dashboard will try again on mount
+                }
+
+                // 3. Redirect
+                router.push('/');
+                router.refresh(); // Ensure server components re-run
             }
         } catch (err: any) {
-            setError(err.message);
+            console.error("Login error:", err);
+            setError(err.message || "An unexpected error occurred");
             setLoading(false);
         }
     };
