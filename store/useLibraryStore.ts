@@ -97,18 +97,16 @@ export const useLibraryStore = create<LibraryState>()(
                 return;
             }
 
-            // 1. Fetch Books - NO CACHE
-            const { data: books, error: booksError } = await supabase.from('books').select('*');
-
-            // 2. Fetch Notes - NO CACHE
-            const { data: notes, error: notesError } = await supabase.from('notes').select('*');
-
-            // 3. Fetch Profile - NO CACHE
-            const { data: profile, error: profileError } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', user.id)
-                .maybeSingle();
+            // Parallel Fetch - NO CACHE
+            const [
+                { data: books, error: booksError },
+                { data: notes, error: notesError },
+                { data: profile, error: profileError }
+            ] = await Promise.all([
+                supabase.from('books').select('*'),
+                supabase.from('notes').select('*'),
+                supabase.from('profiles').select('*').eq('id', user.id).maybeSingle()
+            ]);
 
             if (booksError || notesError || profileError) {
                 console.error("Sync partial failure", booksError, notesError, profileError);
