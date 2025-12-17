@@ -78,25 +78,9 @@ export const useLibraryStore = create<LibraryState>()(
             }
 
             if (!user) {
-                console.log("Store: No user found, resetting to Guest");
-                set({
-                    books: [],
-                    notes: [],
-                    activeBookId: null,
-                    user: {
-                        name: "Guest",
-                        email: "",
-                        bio: "Welcome to your digital garden. Log in to start tracking your reading journey.",
-                        avatarUrl: "https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png",
-                        themePreference: 'light',
-                        joinedDate: new Date().toLocaleDateString(),
-                        location: "Earth",
-                        isPro: false,
-                        readingGoal: 10,
-                        languagePreference: 'en'
-                    },
-                    isLoading: false
-                });
+                console.log("Store: No user found. Middleware should redirect to login.");
+                // We keep the previous state or set empty, but we don't explicitly set "Guest" mode
+                // as the user should be redirected away shortly.
                 return;
             }
 
@@ -106,7 +90,7 @@ export const useLibraryStore = create<LibraryState>()(
             const optimisticUser: User = {
                 ...currentUser,
                 email: user.email || "",
-                name: currentUser.name === "Guest" && user.email ? user.email.split('@')[0] : currentUser.name
+                name: user?.email ? user.email.split('@')[0] : (currentUser.name !== "Guest" ? currentUser.name : "Gardener")
             };
             set({ user: optimisticUser });
             console.log("Store: Optimistic User Set:", optimisticUser.name);
