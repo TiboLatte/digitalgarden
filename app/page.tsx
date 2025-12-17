@@ -72,7 +72,7 @@ export default function Dashboard() {
         <section className="flex flex-col gap-4 text-center items-center relative">
 
           <h1 className="text-5xl md:text-6xl font-serif font-medium leading-tight tracking-tight text-text-main">
-            Good Afternoon, {user?.name?.split(' ')[0] || 'Reader'}
+            Good Afternoon, {(user?.name && user.name !== "Guest") ? user.name.split(' ')[0] : (user?.email ? user.email.split('@')[0] : 'Reader')}
           </h1>
           <div className="flex items-center gap-2 text-text-muted">
             <Sparkles size={16} />

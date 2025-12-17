@@ -95,10 +95,11 @@ export const useLibraryStore = create<LibraryState>()(
             // OPTIMISTIC UPDATE: Set User immediately so UI shows "Good Afternoon, Name"
             // instead of waiting for DB.
             const currentUser = get().user;
+            const derivedName = user.email ? user.email.split('@')[0] : "Gardener";
             const optimisticUser: User = {
                 ...currentUser,
                 email: user.email || "",
-                name: user?.email ? user.email.split('@')[0] : (currentUser.name !== "Guest" ? currentUser.name : "Gardener")
+                name: (currentUser.name && currentUser.name !== "Guest") ? currentUser.name : derivedName
             };
             set({ user: optimisticUser });
             console.log("Store: Optimistic User Set:", optimisticUser.name);
