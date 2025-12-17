@@ -19,8 +19,6 @@ export default function LoginPage() {
     const handleLoginSuccess = async (session: any) => {
         if (!session?.user) return;
 
-        // Prevent double-firing if already loading
-        if (loading) return;
         setLoading(true);
 
         try {
