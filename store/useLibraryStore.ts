@@ -67,15 +67,18 @@ export const useLibraryStore = create<LibraryState>()(
 
         // --- SYNC ACTION ---
         syncWithCloud: async (confirmedSessionUser?: any) => {
+            console.log("Store: syncWithCloud started", confirmedSessionUser?.email);
             set({ isLoading: true });
 
             let user = confirmedSessionUser;
             if (!user) {
                 const { data } = await supabase.auth.getUser();
                 user = data.user;
+                console.log("Store: fetched user from supabase", user?.email);
             }
 
             if (!user) {
+                console.log("Store: No user found, resetting to Guest");
                 set({
                     books: [],
                     notes: [],
@@ -97,6 +100,7 @@ export const useLibraryStore = create<LibraryState>()(
                 return;
             }
 
+            console.log("Store: Fetching data for user", user.id);
             // Parallel Fetch - NO CACHE
             const [
                 { data: books, error: booksError },
@@ -113,6 +117,8 @@ export const useLibraryStore = create<LibraryState>()(
                 // Do NOT return. We must still set the User Identity so they are "logged in".
                 // We'll just continue with whatever data we got (or empty arrays).
             }
+
+            console.log("Store: Profile found?", !!profile);
 
             // Transform snake_case to camelCase mapping
             const mappedBooks: Book[] = (books || []).map((b: any) => ({
@@ -162,6 +168,8 @@ export const useLibraryStore = create<LibraryState>()(
                     name: currentUser.name === "Guest" && user.email ? user.email.split('@')[0] : currentUser.name
                 })
             };
+
+            console.log("Store: Setting final state. User Name:", mergedUser.name);
 
             set({
                 books: mappedBooks,
