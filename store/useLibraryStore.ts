@@ -74,6 +74,14 @@ export const useLibraryStore = create<LibraryState>()(
             if (!user) {
                 const { data } = await supabase.auth.getUser();
                 user = data.user;
+
+                // Retry once if no user found immediately (race condition fix)
+                if (!user) {
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    const retry = await supabase.auth.getUser();
+                    user = retry.data.user;
+                }
+
                 console.log("Store: fetched user from supabase", user?.email);
             }
 

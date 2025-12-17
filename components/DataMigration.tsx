@@ -13,8 +13,18 @@ export function DataMigration() {
     const [status, setStatus] = useState<'idle' | 'checking' | 'migrating' | 'done'>('idle');
 
     useEffect(() => {
-        // 2. Listen for Auth Changes
+        // 1. Immediate Session Check (Rescue for Redirects)
+        const checkSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.user) {
+                console.log("DataMigration: Found existing session on mount");
+                await handleSmartSync(session.user);
+            }
+        };
 
+        checkSession();
+
+        // 2. Listen for Auth Changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             console.log(`DataMigration: Auth Event ${event}`);
             if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
