@@ -15,47 +15,26 @@ export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
-    const [logs, setLogs] = useState<string[]>([]);
-
-    const addLog = (msg: string) => {
-        setLogs(prev => [...prev, `${new Date().toLocaleTimeString()}: ${msg}`]);
-        console.log(msg);
-    };
 
     const handleLoginSuccess = async (session: any) => {
-        addLog("HandleLoginSuccess triggering...");
-        if (!session?.user) {
-            addLog("No user in session. Aborting success handler.");
-            return;
-        }
+        if (!session?.user) return;
 
-        // Prevent double-firing
-        if (loading) {
-            addLog("Already loading/redirecting. Auto-handler running in parallel (benign).");
-        }
+        // Prevent double-firing if already loading
+        if (loading) return;
         setLoading(true);
 
         try {
-            addLog("Starting Data Sync...");
             // Force a timeout so we never hang indefinitely on mobile networks
-            // Increased to 15s to handle cold starts
             const syncPromise = useLibraryStore.getState().syncWithCloud(session.user);
             const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Sync Timeout")), 15000));
 
             await Promise.race([syncPromise, timeoutPromise]);
-            addLog("Data Sync Completed Successfully.");
         } catch (syncErr: any) {
-            addLog(`Sync Warning: ${syncErr.message || syncErr}`);
             console.error("Login sync warning:", syncErr);
         }
 
-        // 3. Redirect
-        addLog("Initiating Hard Redirect to '/'...");
-        setLoading(false);
-        // We use window.location.href instead of router.push to FORCE a navigation
-        // regardless of Next.js router state.
+        // Hard Redirect to ensure fresh state
         window.location.href = '/';
-        addLog("Window Location assigned.");
     };
 
     // Event-driven redirect to ensure session persistence
@@ -63,15 +42,12 @@ export default function LoginPage() {
         // Check if we are ALREADY logged in on mount (e.g. hydration)
         supabase.auth.getSession().then(({ data: { session } }) => {
             if (session) {
-                addLog("Initial Session Check: FOUND. Auto-redirecting...");
                 handleLoginSuccess(session);
             }
         });
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-            addLog(`Auth Event: ${event}`);
             if (event === 'SIGNED_IN' && session) {
-                addLog("Auth State Change: SIGNED_IN. Auto-redirecting...");
                 handleLoginSuccess(session);
             }
         });
@@ -83,43 +59,29 @@ export default function LoginPage() {
         e.preventDefault();
         setError(null);
         setLoading(true);
-        setLogs([]); // Clear previous logs
-        addLog("Starting authentication process...");
 
         try {
             if (isSignUp) {
-                addLog("Attempting Sign Up...");
                 const { error } = await supabase.auth.signUp({
                     email,
                     password,
                 });
                 if (error) throw error;
-                addLog("Sign Up successful. Check email.");
                 setError("Check your email for the confirmation link!");
                 setLoading(false);
             } else {
-                // 1. Authenticate
-                addLog("Attempting Sign In...");
                 const { data, error } = await supabase.auth.signInWithPassword({
                     email,
                     password,
                 });
 
-                if (error) {
-                    addLog(`Sign In Failed: ${error.message}`);
-                    throw error;
-                }
-                if (!data.session) {
-                    addLog("Sign In Success but NO SESSION returned.");
-                    throw new Error("No session created");
-                }
+                if (error) throw error;
+                if (!data.session) throw new Error("No session created");
 
-                addLog("Sign In Successful. Session OK.");
                 // Manual login success
                 await handleLoginSuccess(data.session);
             }
         } catch (err: any) {
-            addLog(`CRITICAL ERROR: ${err.message}`);
             console.error("Login error:", err);
             setError(err.message || "An unexpected error occurred");
             setLoading(false);
@@ -205,17 +167,6 @@ export default function LoginPage() {
                         >
                             {isSignUp ? 'Already have a garden? Log in' : "No account yet? Plant one"}
                         </button>
-                    </div>
-                    <div className="mt-8 p-4 bg-zinc-100 rounded-lg text-[10px] font-mono text-zinc-600 h-32 overflow-y-auto border border-zinc-200">
-                        <div className="flex justify-between items-center mb-2">
-                            <p className="font-bold text-zinc-900">DEBUG LOGS:</p>
-                            <button onClick={() => window.location.href = '/'} className="px-2 py-1 bg-red-100 text-red-600 text-[9px] font-bold rounded hover:bg-red-200">
-                                FORCE ENTER
-                            </button>
-                        </div>
-                        {logs.length === 0 ? <p className="opacity-50">Waiting for action...</p> : logs.map((l, i) => (
-                            <div key={i} className="border-b border-zinc-200/50 py-1">{l}</div>
-                        ))}
                     </div>
                 </div>
             </div>
