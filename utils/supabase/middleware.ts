@@ -26,14 +26,6 @@ export async function updateSession(request: NextRequest) {
                     )
                 },
             },
-            cookieOptions: {
-                name: 'sb-digital-garden-auth-token',
-                maxAge: 60 * 60 * 24 * 365,
-                domain: '',
-                path: '/',
-                sameSite: 'lax',
-                secure: process.env.NODE_ENV === 'production',
-            },
         }
     )
 
