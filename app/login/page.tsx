@@ -22,10 +22,10 @@ export default function LoginPage() {
         setLoading(true);
 
         try {
-            // FORCE HARD RELOAD: This guarantees that cookies are sent to the server,
-            // the middleware runs freshly, and the client hydrates with the correct initial state.
-            // This is the silver bullet for "Guest" persistence issues.
-            window.location.href = '/';
+            // FORCE HARD RELOAD with small delay to ensure cookie persistence
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 500);
         } catch (error) {
             console.error("Login redirect error:", error);
             setLoading(false);
