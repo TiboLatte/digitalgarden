@@ -112,7 +112,7 @@ export default function LoginPage() {
                         >
                             {loading ? <Loader2 className="animate-spin" /> : (
                                 <>
-                                    {isSignUp ? 'Create Account' : 'Open Gate'} <ArrowRight size={18} />
+                                    {isSignUp ? 'Create Account' : 'Log In'} <ArrowRight size={18} />
                                 </>
                             )}
                         </button>

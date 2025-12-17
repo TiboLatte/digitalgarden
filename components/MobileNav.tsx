@@ -4,14 +4,21 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutGrid, Library, Calendar, User } from 'lucide-react';
 
+import { useLibraryStore } from '@/store/useLibraryStore';
+import { LogIn } from 'lucide-react';
+
 export function MobileNav() {
     const pathname = usePathname();
+    const user = useLibraryStore((state) => state.user);
+    const isLoggedIn = !!user.email && user.name !== 'Guest';
 
     const tabs = [
         { href: '/', icon: LayoutGrid, label: 'Home' },
         { href: '/library', icon: Library, label: 'Library' },
         { href: '/digest', icon: Calendar, label: 'Rewind' },
-        { href: '/profile', icon: User, label: 'Profile' },
+        isLoggedIn
+            ? { href: '/profile', icon: User, label: 'Profile' }
+            : { href: '/login', icon: LogIn, label: 'Log In' },
     ];
 
     return (
