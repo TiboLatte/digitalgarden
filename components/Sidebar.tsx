@@ -1,9 +1,21 @@
 'use client';
 
+import { createClient } from '@/utils/supabase/client';
+import { useLibraryStore } from '@/store/useLibraryStore';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { LayoutGrid, Library, User, BookOpen, Calendar } from 'lucide-react';
+import { LayoutGrid, Library, User, BookOpen, Calendar, LogOut, LogIn } from 'lucide-react';
 
 export function Sidebar() {
+    const supabase = createClient();
+    const user = useLibraryStore((state) => state.user);
+    const isLoggedIn = !!user.email && user.name !== 'Guest';
+
+    const handleSignOut = async () => {
+        await supabase.auth.signOut();
+        window.location.href = '/login';
+    };
+
     return (
         <aside className="w-64 border-r border-card-border bg-card hidden md:flex flex-col p-6 gap-6 sticky top-0 h-screen shrink-0 text-text-main">
             <div className="flex items-center gap-2 text-text-main mb-4">
@@ -33,7 +45,23 @@ export function Sidebar() {
             </nav>
 
             <div className="pt-4 border-t border-card-border">
-                {/* Auth removed for reset */}
+                {isLoggedIn ? (
+                    <button
+                        onClick={handleSignOut}
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-red-500 hover:bg-red-50 transition-colors text-left font-medium"
+                    >
+                        <LogOut size={20} />
+                        <span className="text-sm">Disconnect</span>
+                    </button>
+                ) : (
+                    <Link
+                        href="/login"
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg text-emerald-600 hover:bg-emerald-50 transition-colors font-medium"
+                    >
+                        <LogIn size={20} />
+                        <span className="text-sm">Log In</span>
+                    </Link>
+                )}
             </div>
         </aside>
     );

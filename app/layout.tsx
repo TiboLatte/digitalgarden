@@ -21,6 +21,7 @@ export const metadata: Metadata = {
 
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { MobileNav } from "@/components/MobileNav";
+import { AuthListener } from "@/components/AuthListener";
 
 export default function RootLayout({
   children,
@@ -34,6 +35,7 @@ export default function RootLayout({
         className={`${inter.variable} ${playfair.variable} antialiased flex min-h-screen bg-background text-text-main`}
       >
         <ThemeProvider>
+          <AuthListener />
           <Sidebar />
           <div className="flex-1 flex flex-col min-w-0 pb-20 md:pb-0">
             {children}

@@ -31,40 +31,37 @@ export async function updateSession(request: NextRequest) {
 
     const { data: { user } } = await supabase.auth.getUser()
 
-    console.log("MW Debug: URL", request.nextUrl.pathname);
-    console.log("MW Debug: Cookies Keys", request.cookies.getAll().map(c => c.name));
-    console.log("MW Debug: User found?", !!user);
+    // STRICT AUTHENTICATION LOGIC
 
-    // 1. If NO user and NOT on login page -> Redirect to Login
-    if (!user && !request.nextUrl.pathname.startsWith('/login') && !request.nextUrl.pathname.startsWith('/auth')) {
+    // 1. Unauthenticated users trying to access protected routes -> /login
+    if (
+        !user &&
+        !request.nextUrl.pathname.startsWith('/login') &&
+        !request.nextUrl.pathname.startsWith('/auth')
+    ) {
         const url = request.nextUrl.clone()
         url.pathname = '/login'
-        const redirectResponse = NextResponse.redirect(url)
 
-        // COPY COOKIES: Ensure the redirect doesn't drop any session clearing or updates
+        const redirectResponse = NextResponse.redirect(url)
+        // CRITICAL: Copy cookies to persist any state/clearing
         const allCookies = response.cookies.getAll()
-        allCookies.forEach((cookie) => {
-            redirectResponse.cookies.set(cookie)
-        })
+        allCookies.forEach(cookie => redirectResponse.cookies.set(cookie))
 
         return redirectResponse
     }
 
-    // 2. If User and IS on login page -> Redirect to Dashboard
+    // 2. Authenticated users trying to access /login -> / (Dashboard)
     if (user && request.nextUrl.pathname.startsWith('/login')) {
         const url = request.nextUrl.clone()
         url.pathname = '/'
-        const redirectResponse = NextResponse.redirect(url)
 
-        // COPY COOKIES: Critical for persisting the session during the redirect
+        const redirectResponse = NextResponse.redirect(url)
+        // CRITICAL: Copy cookies to persist session
         const allCookies = response.cookies.getAll()
-        allCookies.forEach((cookie) => {
-            redirectResponse.cookies.set(cookie)
-        })
+        allCookies.forEach(cookie => redirectResponse.cookies.set(cookie))
 
         return redirectResponse
     }
 
-    // Standard response if no redirect
     return response
 }

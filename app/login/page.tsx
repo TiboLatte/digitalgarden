@@ -1,91 +1,50 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase';
-import { useLibraryStore } from '@/store/useLibraryStore';
+import { useState } from 'react';
+import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import { Sparkles, ArrowRight, Loader2, Lock, Mail } from 'lucide-react';
 
 export default function LoginPage() {
-    const supabase = createClient();
-    const router = useRouter();
+    const supabase = createClient()
+    const router = useRouter()
 
-    const [isSignUp, setIsSignUp] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false)
+    const [email, setEmail] = useState('')
+    const [password, setPassword] = useState('')
+    const [error, setError] = useState<string | null>(null)
+    const [isSignUp, setIsSignUp] = useState(false)
 
-    const handleLoginSuccess = async (session: any) => {
-        if (!session?.user) return;
-
-        setLoading(true);
-
-        try {
-            // FORCE HARD RELOAD with small delay to ensure cookie persistence
-            setTimeout(() => {
-                window.location.href = '/';
-            }, 500);
-        } catch (error) {
-            console.error("Login redirect error:", error);
-            setLoading(false);
-        }
-    };
-
-    // Event-driven redirect to ensure session persistence
-    useEffect(() => {
-        // Check if we are ALREADY logged in on mount (e.g. hydration)
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            if (session) {
-                handleLoginSuccess(session);
-            }
-        });
-
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-            if (event === 'SIGNED_IN' && session) {
-                handleLoginSuccess(session);
-            }
-        });
-
-        return () => subscription.unsubscribe();
-    }, [supabase]);
-
-    const handleAuth = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError(null);
-        setLoading(true);
+    const handleLogin = async (e: React.FormEvent) => {
+        e.preventDefault()
+        setLoading(true)
+        setError(null)
 
         try {
             if (isSignUp) {
                 const { error } = await supabase.auth.signUp({
                     email,
                     password,
-                });
-                if (error) throw error;
-                setError("Check your email for the confirmation link!");
-                setLoading(false);
+                })
+                if (error) throw error
+                setError("Check your email for confirmation!")
+                setLoading(false)
             } else {
-                const { data, error } = await supabase.auth.signInWithPassword({
+                const { error } = await supabase.auth.signInWithPassword({
                     email,
                     password,
-                });
+                })
+                if (error) throw error
 
-                if (error) throw error;
-                // Session might be null if email confirmation is required, but for password flow it usually exists.
-                if (data.session) {
-                    await handleLoginSuccess(data.session);
-                } else {
-                    // Fallback: If no session implementation (unlikely for password), let the onAuthStateChange listener handle it
-                    // or throw error if strictly required.
-                    if (!data.user) throw new Error("No user returned");
-                }
+                // SUCCESS: Hard Redirect to force clean state hydration
+                window.location.href = '/'
             }
         } catch (err: any) {
-            console.error("Login error:", err);
-            setError(err.message || "An unexpected error occurred");
-            setLoading(false);
+            console.error("Auth error:", err)
+            setError(err.message)
+            setLoading(false)
         }
-    };
+    }
 
     return (
         <div className="min-h-screen bg-[#F0F2E9] flex items-center justify-center p-4">
@@ -109,7 +68,7 @@ export default function LoginPage() {
                         {isSignUp ? 'Start your digital reading journey.' : 'Welcome back, gardener.'}
                     </p>
 
-                    <form onSubmit={handleAuth} className="space-y-4">
+                    <form onSubmit={handleLogin} className="space-y-4">
                         <div className="space-y-2">
                             <label className="text-xs font-bold uppercase tracking-wider text-zinc-400 pl-1">Email</label>
                             <div className="relative">
