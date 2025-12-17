@@ -22,15 +22,15 @@ export default function LoginPage() {
         setLoading(true);
 
         try {
-            // Hard Redirect to ensure fresh state. DataMigration will handle the sync.
-            window.location.href = '/';
+            // Router push for client transition. DataMigration handles the sync.
+            router.push('/');
         } catch (error) {
             console.error("Login redirect error:", error);
             setLoading(false);
         }
 
-        // Hard Redirect to ensure fresh state
-        window.location.href = '/';
+        // Use router.push for smoother client-side transition
+        router.push('/');
     };
 
     // Event-driven redirect to ensure session persistence
