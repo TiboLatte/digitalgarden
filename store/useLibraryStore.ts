@@ -176,15 +176,13 @@ export const useLibraryStore = create<LibraryState>()(
                 } : {})
             };
 
-            console.log("Store: Setting final state. User Name:", mergedUser.name);
-
             set({
                 books: mappedBooks,
                 notes: mappedNotes,
                 user: mergedUser,
                 isLoading: false
             });
-            console.log("✅ [Store] Sync complete. Books:", mappedBooks.length);
+            console.log("✅ [Store] Sync complete");
         },
 
         updateUser: async (updates) => {
