@@ -31,6 +31,10 @@ export async function updateSession(request: NextRequest) {
 
     const { data: { user } } = await supabase.auth.getUser()
 
+    console.log("MW Debug: URL", request.nextUrl.pathname);
+    console.log("MW Debug: Cookies Keys", request.cookies.getAll().map(c => c.name));
+    console.log("MW Debug: User found?", !!user);
+
     // 1. If NO user and NOT on login page -> Redirect to Login
     if (!user && !request.nextUrl.pathname.startsWith('/login') && !request.nextUrl.pathname.startsWith('/auth')) {
         const url = request.nextUrl.clone()
