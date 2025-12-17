@@ -1,25 +1,9 @@
 'use client';
 
-import { createClient } from '@/lib/supabase';
-import { useLibraryStore } from '@/store/useLibraryStore';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { LayoutGrid, Library, User, BookOpen, Calendar, LogOut, LogIn } from 'lucide-react';
+import { LayoutGrid, Library, User, BookOpen, Calendar } from 'lucide-react';
 
 export function Sidebar() {
-    const router = useRouter();
-    const supabase = createClient();
-    const user = useLibraryStore((state) => state.user);
-    // Derived state: guest user has empty email
-    const isLoggedIn = !!user.email;
-
-    const handleSignOut = async () => {
-        await supabase.auth.signOut();
-        // Force reload to clear persisted store state and reset to Guest
-        window.location.href = '/';
-    };
-
     return (
         <aside className="w-64 border-r border-card-border bg-card hidden md:flex flex-col p-6 gap-6 sticky top-0 h-screen shrink-0 text-text-main">
             <div className="flex items-center gap-2 text-text-main mb-4">
@@ -49,23 +33,7 @@ export function Sidebar() {
             </nav>
 
             <div className="pt-4 border-t border-card-border">
-                {isLoggedIn ? (
-                    <button
-                        onClick={handleSignOut}
-                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-red-500 hover:bg-red-50 transition-colors text-left font-medium"
-                    >
-                        <LogOut size={20} />
-                        <span className="text-sm">Disconnect</span>
-                    </button>
-                ) : (
-                    <Link
-                        href="/login"
-                        className="flex items-center gap-3 px-3 py-2 rounded-lg text-emerald-600 hover:bg-emerald-50 transition-colors font-medium"
-                    >
-                        <LogIn size={20} />
-                        <span className="text-sm">Log In</span>
-                    </Link>
-                )}
+                {/* Auth removed for reset */}
             </div>
         </aside>
     );

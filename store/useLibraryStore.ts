@@ -1,19 +1,5 @@
 import { create } from 'zustand';
 import { Book, Note, BookStatus, User } from '../types';
-import { createClient } from '@/lib/supabase';
-
-const supabase = createClient();
-
-// Helper for Robustness: Retry DB operations
-const retryDB = async <T>(operation: () => Promise<T>, retries = 3, delay = 500): Promise<T> => {
-    try {
-        return await operation();
-    } catch (error) {
-        if (retries === 0) throw error;
-        await new Promise(resolve => setTimeout(resolve, delay));
-        return retryDB(operation, retries - 1, delay * 2);
-    }
-};
 
 interface LibraryState {
     books: Book[];
@@ -55,7 +41,7 @@ export const useLibraryStore = create<LibraryState>()(
         user: {
             name: "Guest",
             email: "",
-            bio: "Welcome to your digital garden. Log in to start tracking your reading journey.",
+            bio: "Welcome to your digital garden.",
             avatarUrl: "https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png",
             themePreference: 'light',
             joinedDate: new Date().toLocaleDateString(),
@@ -65,262 +51,37 @@ export const useLibraryStore = create<LibraryState>()(
             languagePreference: 'en'
         },
 
-        // --- SYNC ACTION ---
-        syncWithCloud: async (confirmedSessionUser?: any) => {
-            console.log("Store: syncWithCloud started", confirmedSessionUser?.email);
-            set({ isLoading: true });
-
-            let user = confirmedSessionUser;
-            if (!user) {
-                const { data } = await supabase.auth.getUser();
-                user = data.user;
-
-                // Retry once if no user found immediately (race condition fix)
-                if (!user) {
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    const retry = await supabase.auth.getUser();
-                    user = retry.data.user;
-                }
-
-                console.log("Store: fetched user from supabase", user?.email);
-            }
-
-            if (!user) {
-                console.log("Store: No user found. Middleware should redirect to login.");
-                // We keep the previous state or set empty, but we don't explicitly set "Guest" mode
-                // as the user should be redirected away shortly.
-                return;
-            }
-
-            // OPTIMISTIC UPDATE: Set User immediately so UI shows "Good Afternoon, Name"
-            // instead of waiting for DB.
-            const currentUser = get().user;
-            const derivedName = user.email ? user.email.split('@')[0] : "Gardener";
-            const optimisticUser: User = {
-                ...currentUser,
-                email: user.email || "",
-                name: (currentUser.name && currentUser.name !== "Guest") ? currentUser.name : derivedName
-            };
-            set({ user: optimisticUser });
-            console.log("Store: Optimistic User Set:", optimisticUser.name);
-
-            console.log("Store: Fetching data for user", user.id);
-            // Parallel Fetch - NO CACHE
-            const [
-                { data: books, error: booksError },
-                { data: notes, error: notesError },
-                { data: profile, error: profileError }
-            ] = await Promise.all([
-                supabase.from('books').select('*'),
-                supabase.from('notes').select('*'),
-                supabase.from('profiles').select('*').eq('id', user.id).maybeSingle()
-            ]);
-
-            if (booksError || notesError || profileError) {
-                console.error("Sync partial failure", booksError, notesError, profileError);
-                // Do NOT return. We must still set the User Identity so they are "logged in".
-                // We'll just continue with whatever data we got (or empty arrays).
-            }
-
-            console.log("Store: Profile found?", !!profile);
-
-            // Transform snake_case to camelCase mapping
-            const mappedBooks: Book[] = (books || []).map((b: any) => ({
-                id: b.id,
-                title: b.title,
-                author: b.author,
-                coverUrl: b.cover_url,
-                pageCount: b.page_count,
-                progress: b.progress,
-                status: b.status,
-                rating: b.rating,
-                tags: b.tags || [],
-                dateStarted: b.date_started,
-                dateFinished: b.date_finished,
-                review: b.review,
-                vibes: b.vibes || [],
-                description: b.description,
-                googleId: undefined,
-                isbn: b.isbn
-            }));
-
-            const mappedNotes: Note[] = (notes || []).map((n: any) => ({
-                id: n.id,
-                bookId: n.book_id,
-                content: n.content,
-                type: n.type,
-                pageReference: n.page_reference,
-                createdAt: n.created_at
-            }));
-
-            // Map Profile - Update optimistic user with real profile data
-            const mergedUser: User = {
-                ...optimisticUser,
-                // If profile exists, overwrite optimistic defaults
-                ...(profile ? {
-                    name: profile.full_name || profile.username || optimisticUser.name,
-                    bio: profile.bio || optimisticUser.bio,
-                    location: profile.location || optimisticUser.location,
-                    avatarUrl: profile.avatar_url || optimisticUser.avatarUrl,
-                    themePreference: profile.theme_preference || optimisticUser.themePreference,
-                    readingGoal: profile.reading_goal || optimisticUser.readingGoal,
-                    isPro: profile.is_pro || optimisticUser.isPro,
-                    languagePreference: profile.language_preference || optimisticUser.languagePreference,
-                } : {})
-            };
-
-            set({
-                books: mappedBooks,
-                notes: mappedNotes,
-                user: mergedUser,
-                isLoading: false
-            });
-            console.log("✅ [Store] Sync complete");
+        // --- SYNC ACTION REMOVED ---
+        syncWithCloud: async () => {
+            console.log("Sync disabled (Local Only)");
         },
 
         updateUser: async (updates) => {
-            // ROBUST: DB First, then Local
-            const { data: { user } } = await supabase.auth.getUser();
-
-            if (user) {
-                const dbUpdates: any = {};
-                if (updates.name !== undefined) dbUpdates.full_name = updates.name;
-                if (updates.bio !== undefined) dbUpdates.bio = updates.bio;
-                if (updates.location !== undefined) dbUpdates.location = updates.location;
-                if (updates.avatarUrl !== undefined) dbUpdates.avatar_url = updates.avatarUrl;
-                if (updates.themePreference !== undefined) dbUpdates.theme_preference = updates.themePreference;
-                if (updates.readingGoal !== undefined) dbUpdates.reading_goal = updates.readingGoal;
-                if (updates.languagePreference !== undefined) dbUpdates.language_preference = updates.languagePreference;
-
-                if (Object.keys(dbUpdates).length > 0) {
-                    await retryDB(async () => {
-                        const { error } = await supabase
-                            .from('profiles')
-                            .upsert({
-                                id: user.id,
-                                ...dbUpdates
-                            }, {
-                                onConflict: 'id'
-                            });
-                        if (error) throw error;
-                    });
-                }
-            }
-
-            // Apply to local state (works for Guests too)
+            // Local Only
             set((state) => ({ user: { ...state.user, ...updates } }));
         },
 
         addBook: async (newBook) => {
-            // ROBUST: DB First with RETRY
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                try {
-                    await retryDB(async () => {
-                        const { error } = await supabase.from('books').insert({
-                            id: newBook.id,
-                            user_id: user.id,
-                            title: newBook.title,
-                            author: newBook.author,
-                            cover_url: newBook.coverUrl,
-                            page_count: newBook.pageCount,
-                            progress: newBook.progress,
-                            status: newBook.status,
-                            tags: newBook.tags,
-                            date_started: newBook.dateStarted,
-                            date_finished: newBook.dateFinished,
-                            review: newBook.review,
-                            vibes: newBook.vibes,
-                            description: newBook.description,
-                            isbn: newBook.isbn
-                        });
-                        if (error) throw error;
-                    });
-
-                    // Success: Update Store
-                    set((state) => ({ books: [newBook, ...state.books] }));
-                    console.log("✅ Book saved to Cloud & Store:", newBook.title);
-                } catch (error: any) {
-                    console.error("🔥 FAILED to save book after RETRIES:", error);
-                    // alert(`Failed to save book: ${error.message}`); // Removed alert to prevent UI blocking during loops
-                    throw error; // Re-throw to be caught by the import loop
-                }
-            } else {
-                console.warn("⚠️ User not logged in. Book saved LOCALLY only (Not recommended).");
-                set((state) => ({ books: [newBook, ...state.books] }));
-            }
+            // Local Only
+            set((state) => ({ books: [newBook, ...state.books] }));
+            console.log("✅ Book saved Locally:", newBook.title);
         },
 
         markAsDisliked: async (book) => {
-            const { data: { user } } = await supabase.auth.getUser();
-
             set((state) => ({
                 dislikedBooks: [...state.dislikedBooks, { ...book, status: 'tbr' }]
             }));
-
-            if (user) {
-                // Fire and forget for dislikes, or retry? Let's use retry but not block
-                retryDB(async () => {
-                    const { error } = await supabase.from('books').insert({
-                        id: book.id,
-                        user_id: user.id,
-                        title: book.title,
-                        author: book.author,
-                        cover_url: book.coverUrl,
-                        page_count: book.pageCount,
-                        status: 'abandoned',
-                        rating: 1,
-                        date_finished: new Date().toISOString(),
-                        tags: book.tags,
-                        description: book.description,
-                        review: 'One-Swipe Dislike'
-                    });
-                    if (error) throw error;
-                }).catch(e => console.error("Failed to record dislike", e));
-            }
         },
 
         updateBook: async (id, updates) => {
-            // ROBUST: DB First
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                const dbUpdates: any = {};
-                // ... (mapping redundant for space, assume same) ...
-                if (updates.progress !== undefined) dbUpdates.progress = updates.progress;
-                if (updates.status !== undefined) dbUpdates.status = updates.status;
-                if (updates.rating !== undefined) dbUpdates.rating = updates.rating;
-                if (updates.dateStarted !== undefined) dbUpdates.date_started = updates.dateStarted;
-                if (updates.dateFinished !== undefined) dbUpdates.date_finished = updates.dateFinished;
-                if (updates.review !== undefined) dbUpdates.review = updates.review;
-                if (updates.vibes !== undefined) dbUpdates.vibes = updates.vibes;
-                if (updates.description !== undefined) dbUpdates.description = updates.description;
-                if (updates.isbn !== undefined) dbUpdates.isbn = updates.isbn;
-                if (updates.tags !== undefined) dbUpdates.tags = updates.tags;
-
-                if (Object.keys(dbUpdates).length > 0) {
-                    await retryDB(async () => {
-                        const { error } = await supabase.from('books').update(dbUpdates).eq('id', id);
-                        if (error) throw error;
-                    });
-                }
-            }
-
-            // Success: Update Local
+            // Local Only
             set((state) => ({
                 books: state.books.map((b) => b.id === id ? { ...b, ...updates } : b)
             }));
         },
 
         removeBook: async (id) => {
-            // ROBUST: DB First
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                await retryDB(async () => {
-                    const { error } = await supabase.from('books').delete().eq('id', id);
-                    if (error) throw error;
-                });
-            }
-
+            // Local Only
             set((state) => ({
                 books: state.books.filter((b) => b.id !== id),
                 notes: state.notes.filter((n) => n.bookId !== id)
@@ -348,34 +109,10 @@ export const useLibraryStore = create<LibraryState>()(
                 createdAt: new Date().toISOString(),
             };
 
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                await retryDB(async () => {
-                    const { error } = await supabase.from('notes').insert({
-                        id: newNote.id,
-                        user_id: user.id,
-                        book_id: newNote.bookId,
-                        content: newNote.content,
-                        type: newNote.type,
-                        page_reference: newNote.pageReference,
-                        created_at: newNote.createdAt
-                    });
-                    if (error) throw error;
-                });
-            }
-
             set((state) => ({ notes: [newNote, ...state.notes] }));
         },
 
         removeNote: async (id) => {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                await retryDB(async () => {
-                    const { error } = await supabase.from('notes').delete().eq('id', id);
-                    if (error) throw error;
-                });
-            }
-
             set((state) => ({
                 notes: state.notes.filter((n) => n.id !== id)
             }));
