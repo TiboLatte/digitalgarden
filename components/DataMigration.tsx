@@ -13,16 +13,30 @@ export function DataMigration() {
     const [status, setStatus] = useState<'idle' | 'checking' | 'migrating' | 'done'>('idle');
 
     useEffect(() => {
-        // 1. Initial Sync
-        syncWithCloud();
+        // 1. Initial Sync (Try to get session immediately)
+        const init = async () => {
+            console.log("DataMigration: Starting init...");
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.user) {
+                console.log("DataMigration: Found existing session on mount.", session.user.email);
+                await handleSmartSync(session.user);
+            } else {
+                console.log("DataMigration: No session found on mount. Running default sync.");
+                syncWithCloud();
+            }
+        };
+        init();
 
         // 2. Listen for Auth Changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            console.log(`DataMigration: Auth Event ${event}`);
             if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
                 if (session?.user) {
+                    console.log("DataMigration: Handling Auth Change Sync");
                     await handleSmartSync(session.user);
                 }
             } else if (event === 'SIGNED_OUT') {
+                console.log("DataMigration: Signed Out");
                 syncWithCloud(); // Clears data via store logic
             }
         });
