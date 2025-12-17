@@ -11,7 +11,6 @@ export function DataMigration() {
     const notes = useLibraryStore(state => state.notes);
     const syncWithCloud = useLibraryStore(state => state.syncWithCloud);
     const [status, setStatus] = useState<'idle' | 'checking' | 'migrating' | 'done'>('idle');
-    const [debugAuth, setDebugAuth] = useState("Checking...");
 
     useEffect(() => {
         // 1. Initial Sync (Try to get session immediately)
@@ -21,11 +20,9 @@ export function DataMigration() {
 
             if (session?.user) {
                 console.log("DataMigration: Found existing session on mount.", session.user.email);
-                setDebugAuth(`Logged In: ${session.user.email}`);
                 await handleSmartSync(session.user);
             } else {
                 console.log("DataMigration: No session found on mount. Running default sync.");
-                setDebugAuth("No Session");
                 syncWithCloud();
             }
         };
@@ -34,16 +31,13 @@ export function DataMigration() {
         // 2. Listen for Auth Changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             console.log(`DataMigration: Auth Event ${event}`);
-            setDebugAuth(`Event: ${event}`);
             if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
                 if (session?.user) {
                     console.log("DataMigration: Handling Auth Change Sync");
-                    setDebugAuth(`Syncing: ${session.user.email}`);
                     await handleSmartSync(session.user);
                 }
             } else if (event === 'SIGNED_OUT') {
                 console.log("DataMigration: Signed Out");
-                setDebugAuth("Signed Out");
                 syncWithCloud(); // Clears data via store logic
             }
         });
@@ -121,20 +115,14 @@ export function DataMigration() {
         }
     };
 
-    // VISIBLE DEBUG FOR TROUBLESHOOTING
-    return (
-        <div className="fixed bottom-4 left-4 z-50 flex flex-col items-start gap-1 pointer-events-none opacity-70 hover:opacity-100 transition-opacity">
-            {status === 'migrating' && (
-                <div className="bg-emerald-600 text-white px-3 py-1.5 rounded-md shadow-lg flex items-center gap-2 text-xs font-bold animate-pulse">
-                    <Loader2 size={12} className="animate-spin" />
-                    Rescuing Data...
-                </div>
-            )}
-            <div className="bg-black/80 text-white px-2 py-1 rounded text-[10px] font-mono">
-                Auth: {debugAuth} <br />
-                Status: {status} <br />
-                User: {useLibraryStore.getState().user.email || "Guest"}
+    if (status === 'migrating') {
+        return (
+            <div className="fixed bottom-4 right-4 bg-emerald-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-3 text-sm font-bold z-50 animate-in slide-in-from-bottom-5">
+                <Loader2 size={16} className="animate-spin" />
+                Rescuing your local garden & moving to cloud...
             </div>
-        </div>
-    );
+        );
+    }
+
+    return null;
 }
