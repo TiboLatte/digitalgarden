@@ -22,13 +22,11 @@ export default function LoginPage() {
         setLoading(true);
 
         try {
-            // Force a timeout so we never hang indefinitely on mobile networks
-            const syncPromise = useLibraryStore.getState().syncWithCloud(session.user);
-            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Sync Timeout")), 15000));
-
-            await Promise.race([syncPromise, timeoutPromise]);
-        } catch (syncErr: any) {
-            console.error("Login sync warning:", syncErr);
+            // Hard Redirect to ensure fresh state. DataMigration will handle the sync.
+            window.location.href = '/';
+        } catch (error) {
+            console.error("Login redirect error:", error);
+            setLoading(false);
         }
 
         // Hard Redirect to ensure fresh state
