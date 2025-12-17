@@ -39,19 +39,27 @@ export async function updateSession(request: NextRequest) {
 
     const { data: { user } } = await supabase.auth.getUser()
 
+    let finalResponse = response;
+
     // 1. If NO user and NOT on login page -> Redirect to Login
     if (!user && !request.nextUrl.pathname.startsWith('/login') && !request.nextUrl.pathname.startsWith('/auth')) {
         const url = request.nextUrl.clone()
         url.pathname = '/login'
-        return NextResponse.redirect(url)
+        finalResponse = NextResponse.redirect(url)
     }
-
     // 2. If User and IS on login page -> Redirect to Dashboard
-    if (user && request.nextUrl.pathname.startsWith('/login')) {
+    else if (user && request.nextUrl.pathname.startsWith('/login')) {
         const url = request.nextUrl.clone()
         url.pathname = '/'
-        return NextResponse.redirect(url)
+        finalResponse = NextResponse.redirect(url)
     }
 
-    return response
+    // Copy Sync Cookies from the 'response' object (managed by createServerClient) to 'finalResponse'
+    // This ensures token refreshes during getUser() are persisted even if we redirect.
+    const syncCookies = response.cookies.getAll()
+    syncCookies.forEach((cookie) => {
+        finalResponse.cookies.set(cookie)
+    })
+
+    return finalResponse
 }

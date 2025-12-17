@@ -24,7 +24,8 @@ export function DataMigration() {
                 }
             } else if (event === 'SIGNED_OUT') {
                 console.log("DataMigration: Signed Out");
-                syncWithCloud(); // Clears data via store logic
+                // Force redirect to login to comply with strict auth
+                window.location.href = '/login';
             }
         });
 
