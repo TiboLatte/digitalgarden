@@ -17,6 +17,7 @@ export default function Dashboard() {
   const books = useLibraryStore((state) => state.books);
   const notes = useLibraryStore((state) => state.notes);
   const user = useLibraryStore((state) => state.user);
+  const isLoading = useLibraryStore((state) => state.isLoading);
   const addBook = useLibraryStore((state) => state.addBook);
   const addNote = useLibraryStore((state) => state.addNote);
 
@@ -70,6 +71,10 @@ export default function Dashboard() {
 
         {/* Header */}
         <section className="flex flex-col gap-4 text-center items-center relative">
+
+          <div id="debug-info" className="bg-red-100 text-red-900 p-2 rounded text-xs">
+            DEBUG: Email=[{user?.email}] Name=[{user?.name}] Loading=[{isLoading ? 'T' : 'F'}]
+          </div>
 
           <h1 className="text-5xl md:text-6xl font-serif font-medium leading-tight tracking-tight text-text-main">
             Good Afternoon, {(user?.name && user.name !== "Guest") ? user.name.split(' ')[0] : (user?.email ? user.email.split('@')[0] : 'Reader')}
