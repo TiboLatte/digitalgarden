@@ -39,6 +39,10 @@ export async function updateSession(request: NextRequest) {
 
     const { data: { user } } = await supabase.auth.getUser()
 
+    console.log("Middleware: Path:", request.nextUrl.pathname);
+    console.log("Middleware: User found?", !!user, user?.email);
+    console.log("Middleware: Cookies present?", request.cookies.getAll().map(c => c.name));
+
     let finalResponse = response;
 
     // 1. If NO user and NOT on login page -> Redirect to Login
