@@ -100,6 +100,17 @@ export const useLibraryStore = create<LibraryState>()(
                 return;
             }
 
+            // OPTIMISTIC UPDATE: Set User immediately so UI shows "Good Afternoon, Name"
+            // instead of waiting for DB.
+            const currentUser = get().user;
+            const optimisticUser: User = {
+                ...currentUser,
+                email: user.email || "",
+                name: currentUser.name === "Guest" && user.email ? user.email.split('@')[0] : currentUser.name
+            };
+            set({ user: optimisticUser });
+            console.log("Store: Optimistic User Set:", optimisticUser.name);
+
             console.log("Store: Fetching data for user", user.id);
             // Parallel Fetch - NO CACHE
             const [
@@ -149,24 +160,20 @@ export const useLibraryStore = create<LibraryState>()(
                 createdAt: n.created_at
             }));
 
-            // Map Profile
-            const currentUser = get().user;
+            // Map Profile - Update optimistic user with real profile data
             const mergedUser: User = {
-                ...currentUser,
-                email: user.email || "",
-                // If profile exists, overwrite local defaults. If not, keep local defaults (or current state)
+                ...optimisticUser,
+                // If profile exists, overwrite optimistic defaults
                 ...(profile ? {
-                    name: profile.full_name || profile.username || currentUser.name,
-                    bio: profile.bio || currentUser.bio,
-                    location: profile.location || currentUser.location,
-                    avatarUrl: profile.avatar_url || currentUser.avatarUrl,
-                    themePreference: profile.theme_preference || currentUser.themePreference,
-                    readingGoal: profile.reading_goal || currentUser.readingGoal,
-                    isPro: profile.is_pro || currentUser.isPro,
-                    languagePreference: profile.language_preference || currentUser.languagePreference,
-                } : {
-                    name: currentUser.name === "Guest" && user.email ? user.email.split('@')[0] : currentUser.name
-                })
+                    name: profile.full_name || profile.username || optimisticUser.name,
+                    bio: profile.bio || optimisticUser.bio,
+                    location: profile.location || optimisticUser.location,
+                    avatarUrl: profile.avatar_url || optimisticUser.avatarUrl,
+                    themePreference: profile.theme_preference || optimisticUser.themePreference,
+                    readingGoal: profile.reading_goal || optimisticUser.readingGoal,
+                    isPro: profile.is_pro || optimisticUser.isPro,
+                    languagePreference: profile.language_preference || optimisticUser.languagePreference,
+                } : {})
             };
 
             console.log("Store: Setting final state. User Name:", mergedUser.name);
