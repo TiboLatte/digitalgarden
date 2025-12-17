@@ -22,15 +22,14 @@ export default function LoginPage() {
         setLoading(true);
 
         try {
-            // Router push for client transition. DataMigration handles the sync.
-            router.push('/');
+            // FORCE HARD RELOAD: This guarantees that cookies are sent to the server,
+            // the middleware runs freshly, and the client hydrates with the correct initial state.
+            // This is the silver bullet for "Guest" persistence issues.
+            window.location.href = '/';
         } catch (error) {
             console.error("Login redirect error:", error);
             setLoading(false);
         }
-
-        // Use router.push for smoother client-side transition
-        router.push('/');
     };
 
     // Event-driven redirect to ensure session persistence
@@ -72,10 +71,14 @@ export default function LoginPage() {
                 });
 
                 if (error) throw error;
-                if (!data.session) throw new Error("No session created");
-
-                // Manual login success
-                await handleLoginSuccess(data.session);
+                // Session might be null if email confirmation is required, but for password flow it usually exists.
+                if (data.session) {
+                    await handleLoginSuccess(data.session);
+                } else {
+                    // Fallback: If no session implementation (unlikely for password), let the onAuthStateChange listener handle it
+                    // or throw error if strictly required.
+                    if (!data.user) throw new Error("No user returned");
+                }
             }
         } catch (err: any) {
             console.error("Login error:", err);
